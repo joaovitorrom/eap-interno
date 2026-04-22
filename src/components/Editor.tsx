@@ -41,7 +41,7 @@ export default function Editor({
   return (
     <div className="flex-1 flex flex-col min-h-screen pb-28">
       {/* Top Nav */}
-      <nav className="fixed top-0 left-0 md:left-72 right-0 h-16 z-40 flex justify-between items-center px-8 bg-[#0d1117]/80 backdrop-blur-md border-b border-outline-variant shadow-sm no-print">
+      <nav className="fixed top-0 left-0 md:left-72 right-0 h-16 z-40 flex justify-between items-center px-8 bg-bg/80 backdrop-blur-md border-b border-outline-variant shadow-sm no-print">
         <div className="flex items-center gap-6">
           <span className="text-lg font-black tracking-tighter text-primary md:hidden">EAP Architect</span>
           <div className="hidden md:flex space-x-1 h-16 items-center">
@@ -154,7 +154,7 @@ export default function Editor({
                               </label>
                               <input
                                 type="number"
-                                className={`w-full h-10 rounded text-on-surface text-center text-sm font-semibold focus:border-primary focus:ring-1 focus:ring-primary bg-bg ${
+                                className={`w-full h-10 rounded text-on-surface text-center text-sm font-semibold focus:border-primary focus:ring-1 focus:ring-primary bg-surface ${
                                   key === 'm' ? 'border-primary border-2' : 'border-outline-variant border'
                                 }`}
                                 value={item.pert[key]}
@@ -192,7 +192,7 @@ export default function Editor({
               </div>
 
               {/* Module Subtotal */}
-              <div className="bg-bg/50 border-t border-surface-high/40 px-6 py-3 flex justify-end">
+              <div className="bg-surface-high/20 border-t border-surface-high/40 px-6 py-3 flex justify-end">
                 <div className="flex items-center gap-4 text-sm">
                   <span className="text-on-surface-variant">Subtotal do Módulo:</span>
                   <span className="text-on-surface font-bold">{modTotal} hrs</span>
@@ -217,7 +217,7 @@ export default function Editor({
       </main>
 
       {/* Sticky Bottom Bar */}
-      <div className="no-print fixed bottom-0 left-0 md:left-72 right-0 bg-[#0d1117]/95 backdrop-blur-md border-t border-surface-high/60 shadow-lg z-30 p-4 px-8">
+      <div className="no-print fixed bottom-0 left-0 md:left-72 right-0 bg-bg/95 backdrop-blur-md border-t border-surface-high/60 shadow-lg z-30 p-4 px-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex gap-8 items-center">
             <div className="flex flex-col">

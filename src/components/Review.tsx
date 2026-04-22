@@ -56,7 +56,7 @@ export default function Review({ projectName, data, onNavigateEditor, onExportCS
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       {/* Top Nav */}
-      <nav className="fixed top-0 left-0 md:left-72 right-0 h-16 z-40 flex justify-between items-center px-8 bg-[#0d1117]/80 backdrop-blur-md border-b border-outline-variant shadow-sm no-print">
+      <nav className="fixed top-0 left-0 md:left-72 right-0 h-16 z-40 flex justify-between items-center px-8 bg-bg/80 backdrop-blur-md border-b border-outline-variant shadow-sm no-print">
         <div className="flex items-center gap-6">
           <span className="text-lg font-black tracking-tighter text-primary md:hidden">EAP Architect</span>
           <div className="hidden md:flex space-x-1 h-16 items-center">
