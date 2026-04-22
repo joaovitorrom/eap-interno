@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard - EAP Architect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#0f172a",
+                        "primary-container": "#1e3a8a",
+                        "primary": "#3b82f6",
+                        "error": "#ef4444",
+                        "secondary-fixed-dim": "#b1c5ff",
+                        "outline-variant": "#334155",
+                        "on-tertiary-fixed": "#f8fafc",
+                        "secondary-fixed": "#dae2ff",
+                        "on-surface-variant": "#94a3b8",
+                        "outline": "#64748b",
+                        "surface-container-low": "#1e293b",
+                        "on-primary-fixed": "#eff6ff",
+                        "on-error": "#ffffff",
+                        "surface": "#0f172a",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#cbd5e1",
+                        "tertiary-container": "#334155",
+                        "surface-container-highest": "#334155",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#f8fafc",
+                        "surface-dim": "#0f172a",
+                        "on-primary-container": "#eff6ff",
+                        "on-background": "#f8fafc",
+                        "tertiary": "#64748b",
+                        "surface-variant": "#1e293b",
+                        "tertiary-fixed": "#dee3ed",
+                        "inverse-primary": "#1d4ed8",
+                        "primary-fixed": "#dbeafe",
+                        "surface-container": "#1e293b",
+                        "inverse-surface": "#f8fafc",
+                        "on-secondary-fixed-variant": "#2b457e",
+                        "secondary-container": "#1e3a8a",
+                        "error-container": "#7f1d1d",
+                        "on-primary-fixed-variant": "#1d4ed8",
+                        "on-secondary-container": "#bfdbfe",
+                        "secondary": "#60a5fa",
+                        "surface-bright": "#1e293b",
+                        "inverse-on-surface": "#0f172a",
+                        "primary-fixed-dim": "#bfdbfe",
+                        "surface-tint": "#2563eb",
+                        "tertiary-fixed-dim": "#c1c7d0",
+                        "on-secondary-fixed": "#001946",
+                        "on-surface": "#f8fafc",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#0f172a",
+                        "on-error-container": "#fecaca",
+                        "surface-container-high": "#1e293b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "32px",
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "input-gap": "12px",
+                        "section-margin": "64px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "data-mono": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[style*="'FILL' 1"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0f172a;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased min-h-screen flex">
+<!-- SideNavBar Component -->
+<nav class="bg-surface-container font-sans text-sm font-medium docked h-screen w-72 left-0 border-r border-outline-variant no-shadow fixed left-0 top-0 h-full flex flex-col p-6 z-50 overflow-y-auto hidden md:flex">
+<div class="mb-8">
+<div class="text-xl font-bold text-on-surface mb-6">EAP Architect</div>
+<div class="flex items-center gap-3 p-3 bg-surface-container-high rounded-lg mb-6">
+<img alt="Project Manager" class="w-10 h-10 rounded-full object-cover border-2 border-surface-container-lowest" data-alt="professional headshot of a mature project manager in a blue suit against a light office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyv_mS9aKnpnzfyunXee3HoLDRUZ40gCrsTIaNq3qSvE7c071NwlYTz88O5kejhsfQiVSCu82Lm_nHqsF-DUhZMTczA58be6F0EkuB87NAY-DfyVl4saEN2cdh0XfYQ98_6vnwTNl5q9M4uSfX5KAwT6vNd-KYIm89Y_MjxROeNTtNnRY7u4C7AZ9pryVPRMkucsN1mzRaxal__UnFVb8B6C7WCXODtloKPgtVrY18LufqCewQr2kz4XkUKc3dZzWKK9YKYgKCHuo"/>
+<div>
+<div class="font-headline-md text-headline-md text-on-surface text-sm">Project Alpha</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">PERT Analysis Phase</div>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3 px-4 rounded-lg font-label-sm text-label-sm hover:bg-surface-tint transition-all shadow-sm shadow-primary/20 mb-8 focus:ring-2 focus:ring-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                New Estimation
+            </button>
+</div>
+<div class="flex-1 space-y-2">
+<!-- Active Tab -->
+<a class="flex items-center gap-3 p-3 rounded-lg bg-primary-container text-on-primary-container border-r-4 border-primary hover:pl-2 transition-all duration-300 ease-in-out focus:ring-2 focus:ring-primary/20" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:pl-2 transition-all duration-300 ease-in-out focus:ring-2 focus:ring-primary/20" href="#">
+<span class="material-symbols-outlined" data-icon="folder_copy">folder_copy</span>
+<span>Projects</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:pl-2 transition-all duration-300 ease-in-out focus:ring-2 focus:ring-primary/20" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>Resource Library</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:pl-2 transition-all duration-300 ease-in-out focus:ring-2 focus:ring-primary/20" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span>Risk Analysis</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:pl-2 transition-all duration-300 ease-in-out focus:ring-2 focus:ring-primary/20" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant">
+<a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:pl-2 transition-all duration-300 ease-in-out focus:ring-2 focus:ring-primary/20" href="#">
+<span class="material-symbols-outlined" data-icon="contact_support">contact_support</span>
+<span>Help Center</span>
+</a>
+</div>
+</nav>
+<!-- Main Canvas -->
+<main class="flex-1 md:ml-72 flex flex-col min-h-screen">
+<!-- TopNavBar Component (Mobile Only for Navigation Shell rules, but styled as header here for web context if needed, though instructions say hide BottomNav on web. I will implement a minimal top bar for mobile, and use the provided TopNavBar for web as an alternative if needed. Let's stick to SideNav for Web, and a simplified TopAppBar for Mobile) -->
+<header class="bg-surface/80 backdrop-blur-md docked full-width top-0 border-b border-outline-variant shadow-sm shadow-black/5 fixed top-0 left-0 w-full h-16 z-40 flex justify-between items-center px-8 md:hidden">
+<div class="text-lg font-black tracking-tighter text-primary">EAP Architect</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-all duration-200 active:scale-95 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</header>
+<!-- Content Area -->
+<div class="p-container-padding mt-16 md:mt-0 flex-1 max-w-7xl mx-auto w-full">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2">Projects Dashboard</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage and review your ongoing PERT estimations and work breakdown structures.</p>
+</div>
+<div class="flex items-center gap-4 w-full md:w-auto">
+<div class="relative flex-1 md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-outline" placeholder="Search projects..." type="text"/>
+</div>
+<button class="hidden md:flex items-center gap-2 bg-primary text-on-primary py-2.5 px-5 rounded-lg font-label-sm text-label-sm hover:bg-surface-tint transition-all shadow-sm shadow-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                        New Project
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout for Projects -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Project Card 1 -->
+<div class="bg-surface-container rounded-xl p-6 border border-outline-variant shadow-[0_8px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.3)] transition-all duration-300 relative group cursor-pointer flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-high rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+</div>
+<span class="px-2.5 py-1 bg-surface-container-high text-on-surface-variant rounded text-[10px] font-bold tracking-wider uppercase">Active</span>
+</div>
+<h3 class="font-headline-md text-[20px] text-on-surface mb-2">Project Alpha Redesign</h3>
+<p class="font-body-md text-sm text-on-surface-variant mb-6 line-clamp-2 flex-1">Complete PERT analysis for the new Q3 marketing initiative, focusing on risk mitigation.</p>
+<div class="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider mb-1">Total Est. Hours</span>
+<span class="font-data-mono text-data-mono text-primary">1,240 h</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider mb-1">Last Edited</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2h ago</span>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="bg-surface-container rounded-xl p-6 border border-outline-variant shadow-[0_8px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.3)] transition-all duration-300 relative group cursor-pointer flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-high rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+</div>
+<span class="px-2.5 py-1 bg-error-container text-on-error-container rounded text-[10px] font-bold tracking-wider uppercase">At Risk</span>
+</div>
+<h3 class="font-headline-md text-[20px] text-on-surface mb-2">Backend Migration V2</h3>
+<p class="font-body-md text-sm text-on-surface-variant mb-6 line-clamp-2 flex-1">Database migration estimating pessimistic timeframes due to legacy system constraints.</p>
+<div class="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider mb-1">Total Est. Hours</span>
+<span class="font-data-mono text-data-mono text-primary">850 h</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider mb-1">Last Edited</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Yesterday</span>
+</div>
+</div>
+</div>
+<!-- Project Card 3 (Completed) -->
+<div class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/50 shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 relative flex flex-col h-full opacity-80">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-variant rounded-lg text-outline">
+<span class="material-symbols-outlined" data-icon="done_all">done_all</span>
+</div>
+<span class="px-2.5 py-1 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold tracking-wider uppercase">Completed</span>
+</div>
+<h3 class="font-headline-md text-[20px] text-on-surface mb-2">Client Portal Launch</h3>
+<p class="font-body-md text-sm text-on-surface-variant mb-6 line-clamp-2 flex-1">Finalized estimates and resource allocation for the Q1 client portal rollout.</p>
+<div class="mt-auto pt-4 border-t border-outline-variant/30 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider mb-1">Total Est. Hours</span>
+<span class="font-data-mono text-data-mono text-outline">420 h</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider mb-1">Last Edited</span>
+<span class="font-label-sm text-label-sm text-outline">Oct 12, 2023</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
