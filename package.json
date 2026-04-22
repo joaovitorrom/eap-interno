@@ -4,10 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx tsx server/index.ts & vite",
-    "dev:client": "vite",
-    "dev:server": "npx tsx --watch server/index.ts",
-    "build": "tsc -b && vite build",
+    "dev": "vite",
+    "dev:sqlite": "npx tsx server/index.ts & vite",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

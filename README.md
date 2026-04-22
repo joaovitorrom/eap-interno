@@ -2,11 +2,11 @@
 
 Ferramenta interna para criação de **Estrutura Analítica de Projeto (EAP)** com estimativa **PERT** (Program Evaluation and Review Technique).
 
-Permite que diretores e gerentes de projeto criem, editem e exportem orçamentos de horas de forma visual e interativa, com persistência em banco de dados SQLite.
+Permite que diretores e gerentes de projeto criem, editem e exportem orçamentos de horas de forma visual e interativa, com persistência via **localStorage** no navegador.
 
 ---
 
-## 🖥️ Screenshots
+## 🖥️ Visualizações
 
 A aplicação possui dois modos de visualização:
 
@@ -17,16 +17,16 @@ A aplicação possui dois modos de visualização:
 
 ## 🛠️ Stack Tecnológica
 
-| Camada     | Tecnologia         | Versão   | Descrição                                      |
-| ---------- | ------------------ | -------- | ---------------------------------------------- |
-| Frontend   | React              | 19.x     | Biblioteca de UI com componentes funcionais     |
-| Bundler    | Vite               | 8.x      | Build tool ultra-rápido com HMR                 |
-| Estilização | Tailwind CSS      | 4.x      | Framework CSS utility-first                     |
-| Ícones     | Lucide React       | 1.x      | Ícones SVG modernos e customizáveis            |
-| Backend    | Express            | 5.x      | API REST leve para persistência                 |
-| Banco      | better-sqlite3     | 12.x     | SQLite embarcado — sem servidor de banco        |
-| Runtime    | tsx                | 4.x      | Executa TypeScript diretamente no Node          |
-| Linguagem  | TypeScript         | 6.x      | Tipagem estática para JavaScript                |
+| Camada      | Tecnologia    | Versão | Descrição                                  |
+| ----------- | ------------- | ------ | ------------------------------------------ |
+| Frontend    | React         | 19.x   | Biblioteca de UI com componentes funcionais |
+| Bundler     | Vite          | 8.x    | Build tool ultra-rápido com HMR            |
+| Estilização | Tailwind CSS  | 4.x    | Framework CSS utility-first                |
+| Ícones      | Lucide React  | 1.x    | Ícones SVG modernos e customizáveis        |
+| Persistência | localStorage |   —    | Dados salvos no navegador do usuário       |
+| Linguagem   | TypeScript    | 6.x    | Tipagem estática para JavaScript           |
+
+> **Nota:** O diretório `server/` contém um backend Express + SQLite opcional para uso local. Em produção (Vercel), o app funciona 100% no navegador.
 
 ---
 
@@ -34,20 +34,19 @@ A aplicação possui dois modos de visualização:
 
 ```
 eap-interno/
-├── server/                 # Backend Express + SQLite
-│   ├── db.ts               # Conexão e schema do banco
-│   └── index.ts            # Rotas da API REST
 ├── src/                    # Frontend React
-│   ├── api.ts              # Cliente HTTP para a API
+│   ├── api.ts              # Camada de persistência (localStorage)
 │   ├── App.tsx             # Componente principal
 │   ├── App.css             # Estilos customizados
 │   ├── index.css           # Entry point do Tailwind
 │   └── main.tsx            # Ponto de entrada React
-├── data/                   # Banco SQLite (gerado em runtime)
-│   └── eap.db              # Arquivo do banco de dados
+├── server/                 # Backend opcional (dev local)
+│   ├── db.ts               # Conexão e schema SQLite
+│   └── index.ts            # Rotas da API REST
 ├── index.html              # HTML principal
 ├── vite.config.ts          # Configuração do Vite + Tailwind
 ├── package.json            # Dependências e scripts
+├── .nvmrc                  # Versão do Node (20)
 ├── tsconfig.json           # Config TypeScript raiz
 ├── tsconfig.app.json       # Config TS para o frontend
 └── tsconfig.node.json      # Config TS para o Vite
@@ -59,27 +58,32 @@ eap-interno/
 
 ### Produção
 
-| Pacote           | Função                                        |
-| ---------------- | --------------------------------------------- |
-| `react`          | Renderização de UI                            |
-| `react-dom`      | DOM binding do React                          |
-| `lucide-react`   | Biblioteca de ícones SVG                      |
-| `express`        | Servidor HTTP para API REST                   |
-| `cors`           | Middleware CORS para o Express                |
-| `better-sqlite3` | Driver SQLite síncrono e performático         |
+| Pacote         | Função                   |
+| -------------- | ------------------------ |
+| `react`        | Renderização de UI       |
+| `react-dom`    | DOM binding do React     |
+| `lucide-react` | Biblioteca de ícones SVG |
 
 ### Desenvolvimento
 
-| Pacote               | Função                                    |
-| -------------------- | ----------------------------------------- |
-| `vite`               | Dev server + bundler                      |
-| `@vitejs/plugin-react` | Suporte React no Vite (HMR, JSX)       |
-| `tailwindcss`        | Framework CSS                             |
-| `@tailwindcss/vite`  | Plugin Tailwind para Vite                 |
-| `tsx`                | Runner TypeScript para Node.js            |
-| `typescript`         | Compilador TypeScript                     |
-| `eslint`             | Linter JavaScript/TypeScript              |
-| `@types/*`           | Definições de tipo para TS                |
+| Pacote                  | Função                              |
+| ----------------------- | ----------------------------------- |
+| `vite`                  | Dev server + bundler                |
+| `@vitejs/plugin-react`  | Suporte React no Vite (HMR, JSX)   |
+| `tailwindcss`           | Framework CSS                       |
+| `@tailwindcss/vite`     | Plugin Tailwind para Vite           |
+| `typescript`            | Compilador TypeScript               |
+| `eslint`                | Linter JavaScript/TypeScript        |
+| `@types/*`              | Definições de tipo para TS          |
+
+### Opcionais (backend SQLite local)
+
+| Pacote           | Função                                |
+| ---------------- | ------------------------------------- |
+| `express`        | Servidor HTTP para API REST           |
+| `cors`           | Middleware CORS para o Express        |
+| `better-sqlite3` | Driver SQLite síncrono e performático |
+| `tsx`            | Runner TypeScript para Node.js        |
 
 ---
 
@@ -93,12 +97,12 @@ eap-interno/
 ### Instalação
 
 ```bash
-# Clone o repositório (se necessário)
+# Clone o repositório
 git clone <url-do-repositorio>
 cd eap-interno
 
 # Se usa nvm, ative o Node 20+
-nvm use 20
+nvm use
 
 # Instale as dependências
 npm install
@@ -107,25 +111,20 @@ npm install
 ### Desenvolvimento
 
 ```bash
-# Inicia frontend (Vite) + backend (Express) simultaneamente
+# Inicia o Vite dev server (dados persistem no localStorage)
 npm run dev
 ```
 
-O comando acima:
-1. Inicia o **servidor Express** na porta `3001` (API + SQLite)
-2. Inicia o **Vite dev server** na porta `5173` (frontend com HMR)
-3. O Vite faz **proxy** de `/api/*` para o backend automaticamente
-
 Acesse: **http://localhost:5173**
 
-### Comandos alternativos
+### Comandos disponíveis
 
 ```bash
-# Apenas o frontend
-npm run dev:client
+# Desenvolvimento (padrão — localStorage)
+npm run dev
 
-# Apenas o backend (com hot-reload)
-npm run dev:server
+# Desenvolvimento com backend SQLite local
+npm run dev:sqlite
 
 # Build de produção
 npm run build
@@ -139,19 +138,28 @@ npm run lint
 
 ---
 
-## 🗄️ Banco de Dados
+## 🌐 Deploy (Vercel)
 
-O banco SQLite é criado automaticamente em `data/eap.db` na primeira execução. Ele contém 3 tabelas:
+O app é um **site estático** — basta conectar o repositório à Vercel:
 
-| Tabela     | Descrição                                  |
-| ---------- | ------------------------------------------ |
-| `projects` | Projetos com nome e timestamps             |
-| `modules`  | Módulos de cada projeto (ex: "Autenticação") |
-| `items`    | Funcionalidades com valores PERT (O, M, P) |
+1. Conecte o repositório no [Vercel Dashboard](https://vercel.com)
+2. **Framework Preset:** Vite
+3. **Build Command:** `npm run build`
+4. **Output Directory:** `dist`
+5. **Node.js Version:** 20.x
 
-> **Não precisa de nenhum setup manual.** O schema é aplicado automaticamente ao iniciar o servidor.
+Os dados são armazenados no **localStorage** do navegador de cada usuário.
 
-O arquivo `data/eap.db` está no `.gitignore` — cada ambiente terá seu próprio banco.
+---
+
+## 🗄️ Persistência de Dados
+
+| Ambiente   | Estratégia     | Descrição                                        |
+| ---------- | -------------- | ------------------------------------------------ |
+| Produção   | localStorage   | Dados salvos no navegador, auto-save a cada 1.5s |
+| Local (opcional) | SQLite    | Backend Express com `better-sqlite3` em `data/eap.db` |
+
+> O **auto-save** salva automaticamente após 1.5 segundos de inatividade.
 
 ---
 
@@ -176,23 +184,11 @@ O total final aplica um **buffer de 35%** sobre as horas líquidas para compor o
 
 A ferramenta suporta 3 formatos de exportação:
 
-| Formato | Descrição                                                  |
-| ------- | ---------------------------------------------------------- |
-| **JSON** | Copia os dados para a área de transferência                |
-| **CSV**  | Gera arquivo `.csv` compatível com Excel e Google Sheets   |
-| **PDF**  | Utiliza a função de impressão do navegador                 |
-
----
-
-## 🔧 API REST
-
-| Método   | Rota                      | Descrição                    |
-| -------- | ------------------------- | ---------------------------- |
-| `GET`    | `/api/projects`           | Lista todos os projetos      |
-| `POST`   | `/api/projects`           | Cria um novo projeto         |
-| `GET`    | `/api/projects/:id`       | Busca dados completos        |
-| `PUT`    | `/api/projects/:id`       | Salva módulos e itens        |
-| `DELETE` | `/api/projects/:id`       | Remove projeto e seus dados  |
+| Formato  | Descrição                                                |
+| -------- | -------------------------------------------------------- |
+| **JSON** | Copia os dados para a área de transferência              |
+| **CSV**  | Gera arquivo `.csv` compatível com Excel e Google Sheets |
+| **PDF**  | Utiliza a função de impressão do navegador               |
 
 ---
 
