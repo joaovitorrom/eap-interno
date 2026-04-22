@@ -11,10 +11,12 @@ interface EditorProps {
   onAddModule: () => void;
   onRemoveModule: (mId: string) => void;
   onUpdateModuleTitle: (mId: string, title: string) => void;
+  onUpdateModuleIcon: (mId: string, icon: string) => void;
   onAddItem: (mId: string) => void;
   onRemoveItem: (mId: string, iId: string) => void;
   onUpdateItem: (mId: string, iId: string, field: string, value: string) => void;
   onNavigateReview: () => void;
+  onNavigateDashboard: () => void;
   onExportCSV: () => void;
   onCopyJSON: () => void;
   isExporting: boolean;
@@ -25,14 +27,22 @@ const calculatePERT = (o: number, m: number, p: number) => {
   return isNaN(res) ? 0 : Math.round(res * 10) / 10;
 };
 
-const moduleIcons = ['lock', 'database', 'api', 'web', 'palette', 'payments', 'cloud', 'analytics', 'settings', 'notifications'];
+const moduleIcons = [
+  'lock', 'database', 'api', 'web', 'palette', 'payments', 'cloud', 'analytics', 
+  'settings', 'notifications', 'extension', 'public', 'account_circle', 'shopping_cart',
+  'build', 'verified', 'support_agent', 'view_kanban', 'schedule', 'campaign'
+];
+
+import { useState } from 'react';
 
 export default function Editor({
   projectName, data, saving, saveMsg,
   onProjectNameChange, onSave, onAddModule, onRemoveModule,
-  onUpdateModuleTitle, onAddItem, onRemoveItem, onUpdateItem,
-  onNavigateReview, onExportCSV, onCopyJSON, isExporting,
+  onUpdateModuleTitle, onUpdateModuleIcon, onAddItem, onRemoveItem, onUpdateItem,
+  onNavigateReview, onNavigateDashboard, onExportCSV, onCopyJSON, isExporting,
 }: EditorProps) {
+  const [openIconSelector, setOpenIconSelector] = useState<string | null>(null);
+
   const totalHours = data.reduce((acc, mod) =>
     acc + mod.items.reduce((sum, item) => sum + calculatePERT(item.pert.o, item.pert.m, item.pert.p), 0), 0);
   const bufferHours = Math.round(totalHours * 0.35 * 10) / 10;
@@ -71,10 +81,13 @@ export default function Editor({
       <main className="flex-1 p-8 pt-24 max-w-5xl mx-auto w-full flex flex-col gap-8">
         {/* Header */}
         <header className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-primary text-xs font-medium uppercase tracking-wider mb-1">
+          <button 
+            onClick={onNavigateDashboard} 
+            className="flex items-center gap-2 text-primary text-xs font-medium uppercase tracking-wider mb-1 cursor-pointer hover:underline text-left w-fit"
+          >
             <Icon name="arrow_back" size={14} />
             <span>Voltar ao Dashboard</span>
-          </div>
+          </button>
           <div className="flex items-center justify-between">
             <input
               className="flex-1 bg-transparent text-4xl font-bold text-on-surface border-none p-0 focus:outline-none focus:ring-0 placeholder-outline-variant tracking-tight"
@@ -95,24 +108,60 @@ export default function Editor({
         {/* Modules */}
         {data.map((mod, modIndex) => {
           const modTotal = mod.items.reduce((s, i) => s + calculatePERT(i.pert.o, i.pert.m, i.pert.p), 0);
-          const iconName = moduleIcons[modIndex % moduleIcons.length];
+          const iconName = mod.icon || moduleIcons[modIndex % moduleIcons.length];
 
           return (
-            <section key={mod.id} className="print-break bg-surface rounded-xl shadow-lg border border-surface-high/60 overflow-hidden">
+            <section key={mod.id} className="print-break bg-surface rounded-xl shadow-lg border border-surface-high/60 overflow-hidden relative">
               {/* Module Header */}
-              <div className="bg-surface-high/30 px-6 py-4 border-b border-surface-high/60 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded bg-primary-container text-primary flex items-center justify-center">
+              <div className="bg-surface-high/30 px-6 py-4 border-b border-surface-high/60 flex justify-between items-center relative">
+                <div className="flex items-center gap-3 relative">
+                  <button
+                    onClick={() => setOpenIconSelector(openIconSelector === mod.id ? null : mod.id)}
+                    className="w-8 h-8 rounded bg-primary-container text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                    title="Mudar Ícone"
+                  >
                     <Icon name={iconName} size={18} />
-                  </div>
+                  </button>
+
+                  {/* Icon Selector Popover */}
+                  {openIconSelector === mod.id && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setOpenIconSelector(null)} />
+                      <div className="absolute top-10 left-0 z-50 bg-surface border border-outline-variant shadow-2xl rounded-xl p-3 w-64 grid grid-cols-5 gap-2">
+                        {moduleIcons.map(icon => (
+                          <button
+                            key={icon}
+                            onClick={() => {
+                              onUpdateModuleIcon(mod.id, icon);
+                              setOpenIconSelector(null);
+                            }}
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+                              iconName === icon ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-high hover:text-primary'
+                            }`}
+                          >
+                            <Icon name={icon} size={20} />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  <span className="text-lg font-bold text-on-surface-variant tabular-nums ml-2">
+                    {modIndex + 1}.0
+                  </span>
+
                   <input
-                    className="bg-transparent text-lg font-semibold text-on-surface border-none p-0 focus:outline-none focus:ring-0 w-full"
+                    className="bg-transparent text-lg font-semibold text-on-surface border-none p-0 focus:outline-none focus:ring-0 w-full ml-1"
                     value={mod.title}
                     onChange={(e) => onUpdateModuleTitle(mod.id, e.target.value)}
                   />
                 </div>
-                <button onClick={() => onRemoveModule(mod.id)} className="text-outline hover:text-error transition-colors cursor-pointer no-print">
-                  <Icon name="more_vert" />
+                <button 
+                  onClick={() => onRemoveModule(mod.id)} 
+                  className="text-outline-variant hover:text-error transition-colors cursor-pointer no-print p-2 hover:bg-surface-high/50 rounded-lg"
+                  title="Excluir Módulo"
+                >
+                  <Icon name="delete" size={20} />
                 </button>
               </div>
 
@@ -120,7 +169,7 @@ export default function Editor({
               <div className="p-6 pb-2">
                 {mod.items.length > 0 && (
                   <div className="grid grid-cols-[1fr_auto_auto] gap-6 mb-3 px-4 text-[11px] text-on-surface-variant uppercase tracking-wider font-medium">
-                    <div>Descrição da Tarefa</div>
+                    <div>Descrição da Funcionalidade</div>
                     <div className="w-[260px] text-center">Estimativas PERT (Horas)</div>
                     <div className="w-[80px] text-right">Esperado</div>
                   </div>
@@ -128,13 +177,16 @@ export default function Editor({
 
                 {/* Task Rows */}
                 <div className="space-y-1">
-                  {mod.items.map((item) => {
+                  {mod.items.map((item, itemIndex) => {
                     const expected = calculatePERT(item.pert.o, item.pert.m, item.pert.p);
                     return (
                       <div key={item.id} className="group grid grid-cols-[1fr_auto_auto] gap-6 items-center px-4 py-3 hover:bg-surface-high/20 transition-colors rounded-lg border border-transparent hover:border-surface-high/40">
                         {/* Task name */}
                         <div className="flex items-center gap-3">
                           <Icon name="drag_indicator" className="text-outline-variant/50 cursor-grab no-print" size={16} />
+                          <span className="text-sm font-bold text-on-surface-variant tabular-nums min-w-[28px]">
+                            {modIndex + 1}.{itemIndex + 1}
+                          </span>
                           <input
                             className="flex-1 bg-transparent border-none p-0 focus:outline-none focus:ring-0 text-on-surface text-sm"
                             type="text"
@@ -187,7 +239,7 @@ export default function Editor({
                   className="mt-3 ml-8 flex items-center gap-2 text-primary text-sm font-medium hover:underline cursor-pointer no-print"
                 >
                   <Icon name="add" size={18} />
-                  Adicionar Tarefa
+                  Adicionar Funcionalidade
                 </button>
               </div>
 

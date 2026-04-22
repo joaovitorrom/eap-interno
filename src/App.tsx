@@ -84,7 +84,6 @@ export default function App() {
   }
 
   async function handleDeleteProject(id: string) {
-    if (!confirm('Tem certeza que deseja excluir este projeto?')) return;
     await deleteProject(id);
     await loadProjects();
   }
@@ -113,6 +112,12 @@ export default function App() {
 
   function handleUpdateModuleTitle(mId: string, title: string) {
     const updated = data.map(m => m.id === mId ? { ...m, title } : m);
+    setData(updated);
+    triggerAutoSave(projectName, updated);
+  }
+
+  function handleUpdateModuleIcon(mId: string, icon: string) {
+    const updated = data.map(m => m.id === mId ? { ...m, icon } : m);
     setData(updated);
     triggerAutoSave(projectName, updated);
   }
@@ -223,10 +228,12 @@ export default function App() {
             onAddModule={handleAddModule}
             onRemoveModule={handleRemoveModule}
             onUpdateModuleTitle={handleUpdateModuleTitle}
+            onUpdateModuleIcon={handleUpdateModuleIcon}
             onAddItem={handleAddItem}
             onRemoveItem={handleRemoveItem}
             onUpdateItem={handleUpdateItem}
             onNavigateReview={() => setView('review')}
+            onNavigateDashboard={() => handleNavigate('dashboard')}
             onExportCSV={handleExportCSV}
             onCopyJSON={handleCopyJSON}
             isExporting={isExporting}

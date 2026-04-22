@@ -23,6 +23,7 @@ export interface ProjectModule {
 export interface Project {
   id: string;
   name: string;
+  total_hours?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -48,10 +49,26 @@ function saveAll(projects: StoredProject[]): void {
 
 // ─── API pública (mesma interface de antes) ──────────
 
+const calculatePERT = (o: number, m: number, p: number) => {
+  const res = (Number(o) + 4 * Number(m) + Number(p)) / 6;
+  return isNaN(res) ? 0 : Math.round(res * 10) / 10;
+};
+
 export async function fetchProjects(): Promise<Project[]> {
   const all = getAll();
   return all
-    .map(({ data: _, ...rest }) => rest)
+    .map(({ data, ...rest }) => {
+      let total = 0;
+      data.forEach(mod => {
+        mod.items.forEach(item => {
+          total += calculatePERT(item.pert.o, item.pert.m, item.pert.p);
+        });
+      });
+      // apply 35% buffer
+      const buffer = Math.round(total * 0.35 * 10) / 10;
+      const finalHours = Math.round((total + buffer) * 10) / 10;
+      return { ...rest, total_hours: finalHours };
+    })
     .sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''));
 }
 

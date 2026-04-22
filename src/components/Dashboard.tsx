@@ -108,13 +108,23 @@ export default function Dashboard({ projects, onOpenProject, onNewProject, onDel
               </h3>
 
               {/* Footer */}
-              <div className="mt-auto pt-4 border-t border-outline-variant/30 flex justify-between items-center">
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-outline uppercase tracking-wider mb-1 font-medium">Atualizado</span>
-                  <span className="text-xs text-on-surface-variant font-medium">{timeAgo(project.updated_at)}</span>
+              <div className="mt-auto pt-4 border-t border-outline-variant/30 flex justify-between items-end">
+                <div className="flex gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-outline uppercase tracking-wider mb-1 font-medium">Atualizado</span>
+                    <span className="text-xs text-on-surface-variant font-medium">{timeAgo(project.updated_at)}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-outline uppercase tracking-wider mb-1 font-medium">Estimativa</span>
+                    <span className="text-xs text-primary font-bold">{project.total_hours || 0} hrs</span>
+                  </div>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); onDeleteProject(project.id); }}
+                  onClick={(e) => { 
+                    e.preventDefault();
+                    e.stopPropagation(); 
+                    onDeleteProject(project.id); 
+                  }}
                   className="p-2 text-outline-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-error/10 cursor-pointer"
                 >
                   <Icon name="delete" size={18} />
