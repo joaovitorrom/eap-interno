@@ -172,16 +172,36 @@ export default function App() {
   }
 
   function handleExportCSV() {
-    const lines = ['Módulo,Funcionalidade,O,M,P,PERT'];
-    data.forEach(m => m.items.forEach(i => {
-      const pert = calculatePERT(i.pert.o, i.pert.m, i.pert.p);
-      lines.push(`"${m.title}","${i.label}",${i.pert.o},${i.pert.m},${i.pert.p},${pert}`);
-    }));
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const BOM = '\uFEFF';
+    const lines = ['Módulo;Funcionalidade;O;M;P;PERT'];
+    let totalPERT = 0;
+
+    data.forEach((m, mIdx) => {
+      m.items.forEach((i, iIdx) => {
+        const pert = calculatePERT(i.pert.o, i.pert.m, i.pert.p);
+        totalPERT += pert;
+        const title = m.title.replace(/"/g, "'");
+        const label = i.label.replace(/"/g, "'");
+        const pertStr = pert.toString().replace('.', ',');
+        lines.push(`"${mIdx + 1}.0 ${title}";"${mIdx + 1}.${iIdx + 1} ${label}";${i.pert.o};${i.pert.m};${i.pert.p};${pertStr}`);
+      });
+    });
+
+    const buffer = Math.round(totalPERT * 0.35 * 10) / 10;
+    const finalHours = Math.round((totalPERT + buffer) * 10) / 10;
+    
+    lines.push('');
+    lines.push(`"";"";"";"";"Subtotal Líquido";${totalPERT.toString().replace('.', ',')}`);
+    lines.push(`"";"";"";"";"Buffer (35%)";${buffer.toString().replace('.', ',')}`);
+    lines.push(`"";"";"";"";"Total Estimado";${finalHours.toString().replace('.', ',')}`);
+
+    const blob = new Blob([BOM + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `${projectName.replace(/\s+/g, '_')}_EAP.csv`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   }
 
