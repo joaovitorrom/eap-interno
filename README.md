@@ -1,197 +1,100 @@
-# 📐 EAP Interno — Unect Jr.
+# 📐 Unect EAP & PERT Estimator
 
-Ferramenta interna para criação de **Estrutura Analítica de Projeto (EAP)** com estimativa **PERT** (Program Evaluation and Review Technique).
+Ferramenta premium para criação de **Estrutura Analítica de Projeto (EAP)** com estimativa **PERT** (Program Evaluation and Review Technique), desenvolvida para a **Unect Jr.**
 
-Permite que diretores e gerentes de projeto criem, editem e exportem orçamentos de horas de forma visual e interativa, com persistência via **localStorage** no navegador.
+O sistema permite que diretores e gerentes de projeto orcem horas de forma visual, profissional e precisa, com suporte a exportação avançada e design system adaptável.
 
 ---
 
-## 🖥️ Visualizações
+## ✨ Funcionalidades Principais
 
-A aplicação possui dois modos de visualização:
+### 🎨 Design System de Elite
+- **Dark & Light Mode Native**: Suporte total a temas claro e escuro com transições suaves e tokens semânticos.
+- **Interface Premium**: Inspirada em design systems modernos (Stitch), com foco em legibilidade e experiência do usuário (UX).
+- **Ambient Patterns**: Fundo dinâmico com padrões SVG que se adaptam ao tema.
 
-- **Lista de Projetos** — tela inicial para gerenciar múltiplos projetos
-- **Editor EAP** — editor interativo com módulos, funcionalidades e cálculo PERT automático
+### 🧠 Motor de Estimativa PERT
+- **Cálculo Ponderado**: Implementação fiel da fórmula `(O + 4M + P) / 6`.
+- **Análise de Incerteza**: Visualização de Desvio Padrão e Variância na aba de Revisão.
+- **Buffer de Segurança**: Aplicação automática de **35% de margem** sobre o total líquido.
+- **WBS Indexing**: Numeração automática em cascata (ex: 1.0, 1.1, 2.0) para organização hierárquica.
+
+### 🛠️ Ferramentas de Gestão
+- **Dashboard Inteligente**: Cards de projeto com visualização instantânea de horas totais e status de atualização.
+- **Customização de Módulos**: Escolha entre mais de 20 ícones para categorizar seus módulos de projeto.
+- **Central de Ajuda**: Modal interativo explicando a metodologia EAP e as métricas do PERT.
+- **Auto-Save**: Salvamento automático no `localStorage` a cada 1.5s de inatividade.
+
+### 📤 Exportação Profissional
+- **CSV Otimizado (Excel BR)**: Exportação com separador `;`, decimais com `,`, codificação UTF-8 BOM e resumo de totais no rodapé.
+- **Cópia JSON**: Estrutura de dados pronta para integração ou backup.
+- **Modo Impressão**: Layout CSS específico para gerar PDFs limpos e profissionais.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-| Camada      | Tecnologia    | Versão | Descrição                                  |
-| ----------- | ------------- | ------ | ------------------------------------------ |
-| Frontend    | React         | 19.x   | Biblioteca de UI com componentes funcionais |
-| Bundler     | Vite          | 8.x    | Build tool ultra-rápido com HMR            |
-| Estilização | Tailwind CSS  | 4.x    | Framework CSS utility-first                |
-| Ícones      | Lucide React  | 1.x    | Ícones SVG modernos e customizáveis        |
-| Persistência | localStorage |   —    | Dados salvos no navegador do usuário       |
-| Linguagem   | TypeScript    | 6.x    | Tipagem estática para JavaScript           |
-
-> **Nota:** O diretório `server/` contém um backend Express + SQLite opcional para uso local. Em produção (Vercel), o app funciona 100% no navegador.
+| Camada      | Tecnologia    | Descrição                                  |
+| ----------- | ------------- | ------------------------------------------ |
+| **Frontend**| React 19      | UI reativa com Hooks e Componentes Funcionais|
+| **Bundler** | Vite 8        | Build tool de ultra-performance             |
+| **Estilos** | Tailwind v4   | Framework CSS com tokens semânticos nativos |
+| **Ícones**  | Google Icons  | Material Symbols via componente dinâmico    |
+| **Tipagem** | TypeScript 6  | Segurança e robustez no desenvolvimento     |
 
 ---
 
-## 📂 Estrutura do Projeto
-
-```
-eap-interno/
-├── src/                    # Frontend React
-│   ├── api.ts              # Camada de persistência (localStorage)
-│   ├── App.tsx             # Componente principal
-│   ├── App.css             # Estilos customizados
-│   ├── index.css           # Entry point do Tailwind
-│   └── main.tsx            # Ponto de entrada React
-├── server/                 # Backend opcional (dev local)
-│   ├── db.ts               # Conexão e schema SQLite
-│   └── index.ts            # Rotas da API REST
-├── index.html              # HTML principal
-├── vite.config.ts          # Configuração do Vite + Tailwind
-├── package.json            # Dependências e scripts
-├── .nvmrc                  # Versão do Node (20)
-├── tsconfig.json           # Config TypeScript raiz
-├── tsconfig.app.json       # Config TS para o frontend
-└── tsconfig.node.json      # Config TS para o Vite
-```
-
----
-
-## 📦 Dependências
-
-### Produção
-
-| Pacote         | Função                   |
-| -------------- | ------------------------ |
-| `react`        | Renderização de UI       |
-| `react-dom`    | DOM binding do React     |
-| `lucide-react` | Biblioteca de ícones SVG |
-
-### Desenvolvimento
-
-| Pacote                  | Função                              |
-| ----------------------- | ----------------------------------- |
-| `vite`                  | Dev server + bundler                |
-| `@vitejs/plugin-react`  | Suporte React no Vite (HMR, JSX)   |
-| `tailwindcss`           | Framework CSS                       |
-| `@tailwindcss/vite`     | Plugin Tailwind para Vite           |
-| `typescript`            | Compilador TypeScript               |
-| `eslint`                | Linter JavaScript/TypeScript        |
-| `@types/*`              | Definições de tipo para TS          |
-
-### Opcionais (backend SQLite local)
-
-| Pacote           | Função                                |
-| ---------------- | ------------------------------------- |
-| `express`        | Servidor HTTP para API REST           |
-| `cors`           | Middleware CORS para o Express        |
-| `better-sqlite3` | Driver SQLite síncrono e performático |
-| `tsx`            | Runner TypeScript para Node.js        |
-
----
-
-## 🚀 Como Rodar
+## 🚀 Como Iniciar
 
 ### Pré-requisitos
-
-- **Node.js** >= 20.x (recomendado via [nvm](https://github.com/nvm-sh/nvm))
+- **Node.js** >= 20.x
 - **npm** >= 10.x
 
-### Instalação
-
+### Instalação e Execução
 ```bash
-# Clone o repositório
+# Clone e entre na pasta
 git clone <url-do-repositorio>
 cd eap-interno
 
-# Se usa nvm, ative o Node 20+
-nvm use
-
 # Instale as dependências
 npm install
-```
 
-### Desenvolvimento
-
-```bash
-# Inicia o Vite dev server (dados persistem no localStorage)
+# Inicie o modo desenvolvimento
 npm run dev
 ```
-
-Acesse: **http://localhost:5173**
-
-### Comandos disponíveis
-
-```bash
-# Desenvolvimento (padrão — localStorage)
-npm run dev
-
-# Desenvolvimento com backend SQLite local
-npm run dev:sqlite
-
-# Build de produção
-npm run build
-
-# Preview do build
-npm run preview
-
-# Lint
-npm run lint
-```
+Acesse em: **http://localhost:5173**
 
 ---
 
-## 🌐 Deploy (Vercel)
+## 📊 Metodologia PERT
 
-O app é um **site estático** — basta conectar o repositório à Vercel:
+A estimativa de horas utiliza a técnica de três pontos:
+1. **Otimista (O)**: Melhor cenário possível.
+2. **Mais Provável (M)**: Cenário realista.
+3. **Pessimista (P)**: Pior cenário (riscos materializados).
 
-1. Conecte o repositório no [Vercel Dashboard](https://vercel.com)
-2. **Framework Preset:** Vite
-3. **Build Command:** `npm run build`
-4. **Output Directory:** `dist`
-5. **Node.js Version:** 20.x
+**Fórmula:** `E = (O + 4M + P) / 6`
 
-Os dados são armazenados no **localStorage** do navegador de cada usuário.
-
----
-
-## 🗄️ Persistência de Dados
-
-| Ambiente   | Estratégia     | Descrição                                        |
-| ---------- | -------------- | ------------------------------------------------ |
-| Produção   | localStorage   | Dados salvos no navegador, auto-save a cada 1.5s |
-| Local (opcional) | SQLite    | Backend Express com `better-sqlite3` em `data/eap.db` |
-
-> O **auto-save** salva automaticamente após 1.5 segundos de inatividade.
+A ferramenta também calcula o **Desvio Padrão** `(P - O) / 6` para oferecer um intervalo de confiança sobre a entrega do projeto.
 
 ---
 
-## 📊 Fórmula PERT
-
-A estimativa de horas é calculada com a fórmula PERT:
+## 📂 Estrutura de Pastas
 
 ```
-PERT = (O + 4M + P) / 6
+eap-interno/
+├── src/
+│   ├── components/         # Componentes UI (Sidebar, Dashboard, Editor, etc.)
+│   ├── api.ts              # Camada de dados e lógica PERT
+│   ├── App.tsx             # Orquestrador de estado e rotas
+│   └── index.css           # Design System (Tailwind v4 + Variáveis)
+├── server/                 # Backend opcional (SQLite)
+├── public/                 # Assets estáticos
+└── data/                   # Banco de dados local (se usando SQLite)
 ```
-
-Onde:
-- **O** = Estimativa Otimista (melhor cenário)
-- **M** = Estimativa Mais Provável
-- **P** = Estimativa Pessimista (pior cenário)
-
-O total final aplica um **buffer de 35%** sobre as horas líquidas para compor o preço.
-
----
-
-## 📤 Exportação
-
-A ferramenta suporta 3 formatos de exportação:
-
-| Formato  | Descrição                                                |
-| -------- | -------------------------------------------------------- |
-| **JSON** | Copia os dados para a área de transferência              |
-| **CSV**  | Gera arquivo `.csv` compatível com Excel e Google Sheets |
-| **PDF**  | Utiliza a função de impressão do navegador               |
 
 ---
 
 ## 📝 Licença
 
-Uso interno — Unect Jr. © 2026
+Uso exclusivo interno — **Unect Jr.** © 2026
