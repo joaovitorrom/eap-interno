@@ -106,8 +106,61 @@ input[type="number"] {
 /* ─── Print ────────────────────────────────── */
 
 @media print {
-  .no-print { display: none !important; }
-  .print-break { break-inside: avoid; }
-  body { background: white !important; color: black !important; }
-  body::before { display: none; }
+  /* Hide interactive chrome */
+  .no-print          { display: none !important; }
+  aside              { display: none !important; }
+  nav                { display: none !important; }
+
+  /* Page layout */
+  @page {
+    margin: 16mm 12mm;
+    size: A4 portrait;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body::before { display: none !important; }
+
+  /* Remove sticky bottom bar offset */
+  .pb-28 { padding-bottom: 0 !important; }
+
+  /* Full-width content without sidebar offset */
+  .md\:ml-72  { margin-left: 0 !important; }
+  .md\:left-72 { left: 0 !important; }
+
+  /* Bump top padding since nav is hidden */
+  .pt-24 { padding-top: 1.5rem !important; }
+
+  /* Keep cards from splitting across pages */
+  .print-break   { break-inside: avoid; page-break-inside: avoid; }
+  section        { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Ensure card backgrounds print */
+  .bg-surface,
+  .bg-surface-high\/20,
+  .bg-surface-high\/10 {
+    background-color: #f8fafc !important;
+  }
+
+  /* Table borders visible in print */
+  table, th, td {
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Reduce shadow weight */
+  .shadow-lg, .shadow-xl { box-shadow: none !important; }
 }
+
+/* ─── Mobile touch improvements ────────────── */
+
+@media (max-width: 767px) {
+  /* Larger tap targets */
+  button, select, input { min-height: 36px; }
+}
+

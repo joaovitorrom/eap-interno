@@ -150,7 +150,7 @@ export default function Editor({
       </nav>
 
       {/* Content */}
-      <main className="flex-1 p-8 pt-24 max-w-5xl mx-auto w-full flex flex-col gap-8">
+      <main className="flex-1 px-4 sm:px-8 pt-24 max-w-5xl mx-auto w-full flex flex-col gap-8">
         {/* Header */}
         <header className="flex flex-col gap-2">
           <button
@@ -160,9 +160,9 @@ export default function Editor({
             <Icon name="arrow_back" size={14} />
             <span>Voltar ao Dashboard</span>
           </button>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <input
-              className="flex-1 bg-transparent text-4xl font-bold text-on-surface border-none p-0 focus:outline-none focus:ring-0 placeholder-outline-variant tracking-tight"
+              className="flex-1 min-w-0 bg-transparent text-2xl sm:text-4xl font-bold text-on-surface border-none p-0 focus:outline-none focus:ring-0 placeholder-outline-variant tracking-tight"
               placeholder="Título do Projeto..."
               type="text"
               value={projectName}
@@ -257,7 +257,7 @@ export default function Editor({
               {/* Column Headers */}
               <div className="p-6 pb-2">
                 {mod.items.length > 0 && (
-                  <div className="grid grid-cols-[1fr_auto_auto] gap-6 mb-3 px-4 text-[11px] text-on-surface-variant uppercase tracking-wider font-medium">
+                  <div className="hidden sm:grid grid-cols-[1fr_auto_auto] gap-6 mb-3 px-4 text-[11px] text-on-surface-variant uppercase tracking-wider font-medium">
                     <div>Descrição da Funcionalidade</div>
                     <div className="w-[272px] text-center">
                       Estimativas PERT (Horas) — Fibonacci
@@ -273,24 +273,24 @@ export default function Editor({
                     return (
                       <div
                         key={item.id}
-                        className="group grid grid-cols-[1fr_auto_auto] gap-6 items-center px-4 py-3 hover:bg-surface-high/20 transition-colors rounded-lg border border-transparent hover:border-surface-high/40"
+                        className="group flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto] gap-2 sm:gap-6 items-start sm:items-center px-4 py-3 hover:bg-surface-high/20 transition-colors rounded-lg border border-transparent hover:border-surface-high/40"
                       >
                         {/* Task name */}
-                        <div className="flex items-center gap-3">
-                          <Icon name="drag_indicator" className="text-outline-variant/50 cursor-grab no-print" size={16} />
-                          <span className="text-sm font-bold text-on-surface-variant tabular-nums min-w-[28px]">
+                        <div className="flex items-center gap-3 w-full">
+                          <Icon name="drag_indicator" className="text-outline-variant/50 cursor-grab no-print shrink-0" size={16} />
+                          <span className="text-sm font-bold text-on-surface-variant tabular-nums min-w-[28px] shrink-0">
                             {modIndex + 1}.{itemIndex + 1}
                           </span>
                           <input
-                            className="flex-1 bg-transparent border-none p-0 focus:outline-none focus:ring-0 text-on-surface text-sm"
+                            className="flex-1 min-w-0 bg-transparent border-none p-0 focus:outline-none focus:ring-0 text-on-surface text-sm"
                             type="text"
                             value={item.label}
                             onChange={(e) => onUpdateItem(mod.id, item.id, 'label', e.target.value)}
                           />
                         </div>
 
-                        {/* PERT Fibonacci Selects O/M/P */}
-                        <div className="w-[272px] flex gap-3 justify-center no-print">
+                        {/* PERT Fibonacci Selects O/M/P — hidden on mobile, show below task name on sm+ */}
+                        <div className="w-full sm:w-[272px] flex gap-3 justify-start sm:justify-center no-print pl-9 sm:pl-0">
                           <FibSelect
                             label="O"
                             value={item.pert.o}
@@ -310,7 +310,7 @@ export default function Editor({
                         </div>
 
                         {/* Expected value */}
-                        <div className="w-[80px] flex justify-end items-center gap-2">
+                        <div className="w-full sm:w-[80px] flex justify-start sm:justify-end items-center gap-2 pl-9 sm:pl-0">
                           <span className="text-sm font-semibold text-on-surface bg-surface-high/50 px-3 py-1 rounded tabular-nums">
                             {fmt(expected)}
                           </span>
@@ -339,9 +339,9 @@ export default function Editor({
               {/* Module Footer — O/M/P sums + subtotal */}
               {mod.items.length > 0 && (
                 <div className="bg-surface-high/20 border-t border-surface-high/40 px-6 py-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     {/* Sum of O, M, P columns */}
-                    <div className="flex items-center gap-6 text-xs text-on-surface-variant no-print">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-on-surface-variant no-print">
                       <div className="flex items-center gap-1.5">
                         <span className="font-medium uppercase tracking-wider">Σ O:</span>
                         <span className="font-bold text-on-surface tabular-nums bg-surface px-2 py-0.5 rounded border border-outline-variant/40">
@@ -399,22 +399,22 @@ export default function Editor({
       </main>
 
       {/* Sticky Bottom Bar */}
-      <div className="no-print fixed bottom-0 left-0 md:left-72 right-0 bg-bg/95 backdrop-blur-md border-t border-surface-high/60 shadow-lg z-30 p-4 px-8">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex gap-8 items-center">
+      <div className="no-print fixed bottom-0 left-0 md:left-72 right-0 bg-bg/95 backdrop-blur-md border-t border-surface-high/60 shadow-lg z-30 p-3 px-4 sm:p-4 sm:px-8">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex gap-4 sm:gap-8 items-center">
             <div className="flex flex-col">
-              <span className="text-[11px] text-outline uppercase tracking-wider font-medium">Total Líquido</span>
-              <span className="text-xl font-bold text-on-surface tabular-nums">
+              <span className="text-[10px] sm:text-[11px] text-outline uppercase tracking-wider font-medium">Total Líquido</span>
+              <span className="text-lg sm:text-xl font-bold text-on-surface tabular-nums">
                 {fmt(totalHours)} <span className="text-xs text-outline-variant font-normal">hrs</span>
               </span>
             </div>
             <div className="w-px h-10 bg-outline-variant/30" />
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-outline uppercase tracking-wider font-medium">Buffer</span>
+                <span className="text-[10px] sm:text-[11px] text-outline uppercase tracking-wider font-medium">Buffer</span>
                 <span className="bg-primary-container text-primary text-[10px] px-1.5 py-0.5 rounded font-bold">35%</span>
               </div>
-              <span className="text-xl font-bold text-primary tabular-nums">
+              <span className="text-lg sm:text-xl font-bold text-primary tabular-nums">
                 +{fmt(bufferHours)} <span className="text-xs text-primary/60 font-normal">hrs</span>
               </span>
             </div>
@@ -422,9 +422,9 @@ export default function Editor({
 
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-end">
-              <span className="text-xs text-primary uppercase tracking-wider font-bold">Total Estimado</span>
-              <span className="text-3xl font-bold text-primary leading-none tabular-nums">
-                {fmt(finalHours)} <span className="text-base text-primary/60 font-normal">hrs</span>
+              <span className="text-[10px] sm:text-xs text-primary uppercase tracking-wider font-bold">Total Estimado</span>
+              <span className="text-2xl sm:text-3xl font-bold text-primary leading-none tabular-nums">
+                {fmt(finalHours)} <span className="text-sm sm:text-base text-primary/60 font-normal">hrs</span>
               </span>
             </div>
           </div>
