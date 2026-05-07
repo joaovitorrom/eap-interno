@@ -1,10 +1,10 @@
 import Icon from './Icon';
 
 interface SidebarProps {
-  activeView: 'dashboard' | 'editor' | 'review' | 'converter';
+  activeView: 'dashboard' | 'editor' | 'review' | 'converter' | 'poker' | 'pricing';
   projectName?: string;
   darkMode: boolean;
-  onNavigate: (view: 'dashboard' | 'editor' | 'review' | 'converter') => void;
+  onNavigate: (view: 'dashboard' | 'editor' | 'review' | 'converter' | 'poker' | 'pricing') => void;
   onNewProject: () => void;
   onToggleDark: () => void;
   onOpenHelp: () => void;
@@ -14,6 +14,8 @@ export default function Sidebar({ activeView, projectName, darkMode, onNavigate,
   const navItems = [
     { id: 'dashboard' as const, icon: 'dashboard', label: 'Dashboard' },
     { id: 'editor' as const, icon: 'folder_copy', label: 'Projetos' },
+    { id: 'poker' as const, icon: 'style', label: 'Planning Poker' },
+    { id: 'pricing' as const, icon: 'payments', label: 'Precificação' },
     { id: 'converter' as const, icon: 'schedule', label: 'Conversor de Horas' },
   ];
 

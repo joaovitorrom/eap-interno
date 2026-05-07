@@ -4,13 +4,15 @@ import Dashboard from './components/Dashboard';
 import Editor from './components/Editor';
 import Review from './components/Review';
 import TimeConverter from './components/TimeConverter';
+import PlanningPoker from './components/PlanningPoker';
+import Pricing from './components/Pricing';
 import HelpModal from './components/HelpModal';
 import {
   fetchProjects, fetchProjectData, createProject, saveProject, deleteProject,
   type Project, type ProjectModule,
 } from './api';
 
-type View = 'dashboard' | 'editor' | 'review' | 'converter';
+type View = 'dashboard' | 'editor' | 'review' | 'converter' | 'poker' | 'pricing';
 
 const calculatePERT = (o: number, m: number, p: number) => {
   const res = (Number(o) + 4 * Number(m) + Number(p)) / 6;
@@ -275,6 +277,24 @@ export default function App() {
         {view === 'converter' && (
           <TimeConverter
             onNavigateDashboard={() => handleNavigate('dashboard')}
+          />
+        )}
+
+        {view === 'poker' && (
+          <PlanningPoker
+            projectName={projectName}
+            data={data}
+            onNavigateDashboard={() => handleNavigate('dashboard')}
+            onNavigateEditor={() => setView('editor')}
+          />
+        )}
+
+        {view === 'pricing' && (
+          <Pricing
+            projectName={projectName}
+            data={data}
+            onNavigateDashboard={() => handleNavigate('dashboard')}
+            onNavigateEditor={() => setView('editor')}
           />
         )}
       </div>
