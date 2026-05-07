@@ -78,10 +78,9 @@ export default function Pricing({
     const items = mod.items.map((item) => {
       const expected = calculatePERT(item.pert.o, item.pert.m, item.pert.p);
       const sp = hoursToSP(expected);
-      const spRow = SP_TABLE.find(r => r.sp === sp) ?? SP_TABLE[0];
       const itemMinPrice = Math.round(expected * hourlyRate * 100) / 100;
       const itemMaxPrice = Math.round(expected * 1.35 * hourlyRate * 100) / 100;
-      return { ...item, expected, sp, spRow, itemMinPrice, itemMaxPrice };
+      return { ...item, expected, sp, itemMinPrice, itemMaxPrice };
     });
     const modHours     = items.reduce((s, i) => s + i.expected, 0);
     const modBuf       = Math.round(modHours * 0.35 * 10) / 10;
@@ -182,13 +181,13 @@ export default function Pricing({
           </div>
 
           {/* Quick presets */}
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="text-xs text-on-surface-variant mr-1 self-center">Presets:</span>
-            {[40, 60, 80, 100, 120, 150].map((r) => (
+          <div className="mt-5 flex flex-wrap gap-2 items-center">
+            <span className="text-xs text-on-surface-variant font-medium">Presets comuns:</span>
+            {[10, 20, 30, 40].map((r) => (
               <button
                 key={r}
                 onClick={() => { setRateInput(String(r)); setHourlyRate(r); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all cursor-pointer ${
                   hourlyRate === r
                     ? 'bg-primary text-white border-primary shadow-sm'
                     : 'bg-surface-high/30 text-on-surface-variant border-outline-variant/40 hover:bg-surface-high hover:text-on-surface'
@@ -197,6 +196,7 @@ export default function Pricing({
                 R$ {r}/h
               </button>
             ))}
+            <span className="text-xs text-outline ml-2">ou insira um valor personalizado no campo acima</span>
           </div>
         </section>
 

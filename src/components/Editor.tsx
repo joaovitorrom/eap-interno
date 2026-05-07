@@ -23,23 +23,47 @@ interface EditorProps {
   isExporting: boolean;
 }
 
-// Fibonacci sequence for Planning Poker (hours estimation)
-const FIBONACCI = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+/**
+ * Hour options derived from the Fibonacci SP table:
+ * SP 1 → 2–4h | SP 2 → 6–10h | SP 3 → 12–18h
+ * SP 5 → 24–36h | SP 8 → 40–60h | SP 13+ → >60h (Epic)
+ */
+const HOUR_OPTIONS: { value: number; label: string; sp: number; epic?: boolean }[] = [
+  { value: 0,  label: '—',              sp: 0 },
+  // SP 1
+  { value: 2,  label: '2h  · SP 1',    sp: 1 },
+  { value: 3,  label: '3h  · SP 1',    sp: 1 },
+  { value: 4,  label: '4h  · SP 1',    sp: 1 },
+  // SP 2
+  { value: 6,  label: '6h  · SP 2',    sp: 2 },
+  { value: 8,  label: '8h  · SP 2',    sp: 2 },
+  { value: 10, label: '10h · SP 2',    sp: 2 },
+  // SP 3
+  { value: 12, label: '12h · SP 3',    sp: 3 },
+  { value: 15, label: '15h · SP 3',    sp: 3 },
+  { value: 18, label: '18h · SP 3',    sp: 3 },
+  // SP 5
+  { value: 24, label: '24h · SP 5',    sp: 5 },
+  { value: 30, label: '30h · SP 5',    sp: 5 },
+  { value: 36, label: '36h · SP 5',    sp: 5 },
+  // SP 8
+  { value: 40, label: '40h · SP 8',    sp: 8 },
+  { value: 48, label: '48h · SP 8',    sp: 8 },
+  { value: 60, label: '60h · SP 8',    sp: 8 },
+  // Epic (SP 13+)
+  { value: 80, label: '80h · Epic ⚠',  sp: 13, epic: true },
+];
 
-// Map each Fibonacci value to its rough Planning Poker classification label
-const FIBONACCI_LABELS: Record<number, string> = {
-  0:  '0 – Sem esforço',
-  1:  '1 – Trivial',
-  2:  '2 – Pequeno',
-  3:  '3 – Pequeno+',
-  5:  '5 – Médio',
-  8:  '8 – Médio+',
-  13: '13 – Grande',
-  21: '21 – Grande+',
-  34: '34 – XL',
-  55: '55 – XXL',
-  89: '89 – Épico',
-};
+/** Maps a PERT expected-hours value to its Fibonacci Story Point */
+export function hoursToSP(hours: number): number {
+  if (hours <= 0)  return 0;
+  if (hours <= 4)  return 1;
+  if (hours <= 10) return 2;
+  if (hours <= 18) return 3;
+  if (hours <= 36) return 5;
+  if (hours <= 60) return 8;
+  return 13;
+}
 
 const calculatePERT = (o: number, m: number, p: number): number => {
   const res = (Number(o) + 4 * Number(m) + Number(p)) / 6;
@@ -60,19 +84,23 @@ const moduleIcons = [
   'build', 'verified', 'support_agent', 'view_kanban', 'schedule', 'campaign',
 ];
 
-// ─── Fibonacci Select Component ────────────────────────────────────────────────
-interface FibSelectProps {
+// ─── Hour Select Component ─────────────────────────────────────────────────────
+interface HourSelectProps {
   label: string;
   value: number;
   isPrimary?: boolean;
   onChange: (v: string) => void;
 }
 
-function FibSelect({ label, value, isPrimary = false, onChange }: FibSelectProps) {
+function HourSelect({ label, value, isPrimary = false, onChange }: HourSelectProps) {
+  const selected = HOUR_OPTIONS.find(o => o.value === value);
+  const isEpic = selected?.epic ?? false;
+
   return (
-    <div className="relative w-[84px]">
+    <div className="relative w-[110px]">
       <label
         className={`absolute -top-2 left-2 px-1 text-[10px] z-10 font-bold ${
+          isEpic ? 'text-rose-400 bg-surface' :
           isPrimary ? 'text-primary bg-surface' : 'text-outline bg-surface'
         }`}
       >
@@ -81,16 +109,19 @@ function FibSelect({ label, value, isPrimary = false, onChange }: FibSelectProps
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full h-10 rounded text-on-surface text-center text-sm font-semibold
+        className={`w-full h-10 rounded text-on-surface text-center text-[12px] font-semibold
           focus:outline-none focus:ring-1 bg-surface appearance-none cursor-pointer
-          ${isPrimary
-            ? 'border-primary border-2 focus:ring-primary'
-            : 'border-outline-variant border focus:ring-primary'
+          ${
+            isEpic
+              ? 'border-rose-500 border-2 focus:ring-rose-400 text-rose-400'
+              : isPrimary
+                ? 'border-primary border-2 focus:ring-primary'
+                : 'border-outline-variant border focus:ring-primary'
           }`}
       >
-        {FIBONACCI.map((fib) => (
-          <option key={fib} value={fib} title={FIBONACCI_LABELS[fib]}>
-            {fib}
+        {HOUR_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>
@@ -177,18 +208,28 @@ export default function Editor({
           </div>
         </header>
 
-        {/* Planning Poker legend */}
-        <div className="no-print flex flex-wrap gap-2 items-center text-[11px] text-on-surface-variant">
-          <span className="font-semibold uppercase tracking-wider mr-1">Planning Poker (Fibonacci):</span>
-          {FIBONACCI.map((fib) => (
-            <span
-              key={fib}
-              className="px-2 py-0.5 rounded bg-surface border border-outline-variant/50 font-mono font-bold text-on-surface"
-              title={FIBONACCI_LABELS[fib]}
-            >
-              {fib}
-            </span>
-          ))}
+        {/* Planning Poker legend — SP reference */}
+        <div className="no-print bg-surface rounded-xl border border-surface-high/60 px-5 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Referência Story Points (Fibonacci)</span>
+            <span className="text-[10px] text-outline">— selecione as horas nos campos O/M/P</span>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-[11px]">
+            {[
+              { sp: 1,  hours: '2–4h',  label: 'Trivial',   color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' },
+              { sp: 2,  hours: '6–10h', label: 'Pequeno',   color: 'text-teal-400 border-teal-500/30 bg-teal-500/10' },
+              { sp: 3,  hours: '12–18h',label: 'Médio',     color: 'text-sky-400 border-sky-500/30 bg-sky-500/10' },
+              { sp: 5,  hours: '24–36h',label: 'Complexo',  color: 'text-violet-400 border-violet-500/30 bg-violet-500/10' },
+              { sp: 8,  hours: '40–60h',label: 'Módulo',    color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
+              { sp: 13, hours: '>60h',  label: 'Epic ⚠',   color: 'text-rose-400 border-rose-500/30 bg-rose-500/10' },
+            ].map(({ sp, hours, label, color }) => (
+              <div key={sp} className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${color}`}>
+                <span className="font-bold text-base">{sp}</span>
+                <span className="font-mono text-[10px] opacity-80">{hours}</span>
+                <span className="text-[10px] opacity-70">{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Modules */}
@@ -259,10 +300,10 @@ export default function Editor({
                 {mod.items.length > 0 && (
                   <div className="hidden sm:grid grid-cols-[1fr_auto_auto] gap-6 mb-3 px-4 text-[11px] text-on-surface-variant uppercase tracking-wider font-medium">
                     <div>Descrição da Funcionalidade</div>
-                    <div className="w-[272px] text-center">
-                      Estimativas PERT (Horas) — Fibonacci
+                    <div className="w-[344px] text-center">
+                      Horas O / M / P &nbsp;→&nbsp; Story Points
                     </div>
-                    <div className="w-[80px] text-right">Esperado</div>
+                    <div className="w-[80px] text-right">PERT (h)</div>
                   </div>
                 )}
 
@@ -289,21 +330,21 @@ export default function Editor({
                           />
                         </div>
 
-                        {/* PERT Fibonacci Selects O/M/P — hidden on mobile, show below task name on sm+ */}
-                        <div className="w-full sm:w-[272px] flex gap-3 justify-start sm:justify-center no-print pl-9 sm:pl-0">
-                          <FibSelect
-                            label="O"
+                        {/* Hour selects for O/M/P — values map to SP under the hood */}
+                        <div className="w-full sm:w-[344px] flex gap-3 justify-start sm:justify-center no-print pl-9 sm:pl-0">
+                          <HourSelect
+                            label="O (Otimista)"
                             value={item.pert.o}
                             onChange={(v) => onUpdateItem(mod.id, item.id, 'pert.o', v)}
                           />
-                          <FibSelect
-                            label="M"
+                          <HourSelect
+                            label="M (Nominal)"
                             value={item.pert.m}
                             isPrimary
                             onChange={(v) => onUpdateItem(mod.id, item.id, 'pert.m', v)}
                           />
-                          <FibSelect
-                            label="P"
+                          <HourSelect
+                            label="P (Pessimista)"
                             value={item.pert.p}
                             onChange={(v) => onUpdateItem(mod.id, item.id, 'pert.p', v)}
                           />
