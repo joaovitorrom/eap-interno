@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Icon from './Icon';
 import type { ProjectModule } from '../api';
 
@@ -22,19 +23,88 @@ interface EditorProps {
   isExporting: boolean;
 }
 
-const calculatePERT = (o: number, m: number, p: number) => {
+// Fibonacci sequence for Planning Poker (hours estimation)
+const FIBONACCI = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+
+// Map each Fibonacci value to its rough Planning Poker classification label
+const FIBONACCI_LABELS: Record<number, string> = {
+  0:  '0 – Sem esforço',
+  1:  '1 – Trivial',
+  2:  '2 – Pequeno',
+  3:  '3 – Pequeno+',
+  5:  '5 – Médio',
+  8:  '8 – Médio+',
+  13: '13 – Grande',
+  21: '21 – Grande+',
+  34: '34 – XL',
+  55: '55 – XXL',
+  89: '89 – Épico',
+};
+
+const calculatePERT = (o: number, m: number, p: number): number => {
   const res = (Number(o) + 4 * Number(m) + Number(p)) / 6;
-  return isNaN(res) ? 0 : Math.round(res * 10) / 10;
+  if (isNaN(res)) return 0;
+  // Round to 1 decimal to avoid floating-point artefacts (e.g. 1.6666...)
+  return Math.round(res * 10) / 10;
+};
+
+/** Format a number ensuring no trailing floating-point noise */
+const fmt = (n: number): string => {
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 };
 
 const moduleIcons = [
-  'lock', 'database', 'api', 'web', 'palette', 'payments', 'cloud', 'analytics', 
+  'lock', 'database', 'api', 'web', 'palette', 'payments', 'cloud', 'analytics',
   'settings', 'notifications', 'extension', 'public', 'account_circle', 'shopping_cart',
-  'build', 'verified', 'support_agent', 'view_kanban', 'schedule', 'campaign'
+  'build', 'verified', 'support_agent', 'view_kanban', 'schedule', 'campaign',
 ];
 
-import { useState } from 'react';
+// ─── Fibonacci Select Component ────────────────────────────────────────────────
+interface FibSelectProps {
+  label: string;
+  value: number;
+  isPrimary?: boolean;
+  onChange: (v: string) => void;
+}
 
+function FibSelect({ label, value, isPrimary = false, onChange }: FibSelectProps) {
+  return (
+    <div className="relative w-[84px]">
+      <label
+        className={`absolute -top-2 left-2 px-1 text-[10px] z-10 font-bold ${
+          isPrimary ? 'text-primary bg-surface' : 'text-outline bg-surface'
+        }`}
+      >
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full h-10 rounded text-on-surface text-center text-sm font-semibold
+          focus:outline-none focus:ring-1 bg-surface appearance-none cursor-pointer
+          ${isPrimary
+            ? 'border-primary border-2 focus:ring-primary'
+            : 'border-outline-variant border focus:ring-primary'
+          }`}
+      >
+        {FIBONACCI.map((fib) => (
+          <option key={fib} value={fib} title={FIBONACCI_LABELS[fib]}>
+            {fib}
+          </option>
+        ))}
+      </select>
+      {/* custom chevron icon */}
+      <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-outline-variant">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+          <path d="M6 8L1 3h10L6 8z" />
+        </svg>
+      </span>
+    </div>
+  );
+}
+
+// ─── Main Editor ───────────────────────────────────────────────────────────────
 export default function Editor({
   projectName, data, saving, saveMsg,
   onProjectNameChange, onSave, onAddModule, onRemoveModule,
@@ -43,8 +113,10 @@ export default function Editor({
 }: EditorProps) {
   const [openIconSelector, setOpenIconSelector] = useState<string | null>(null);
 
-  const totalHours = data.reduce((acc, mod) =>
-    acc + mod.items.reduce((sum, item) => sum + calculatePERT(item.pert.o, item.pert.m, item.pert.p), 0), 0);
+  const totalHours = data.reduce(
+    (acc, mod) => acc + mod.items.reduce((sum, item) => sum + calculatePERT(item.pert.o, item.pert.m, item.pert.p), 0),
+    0,
+  );
   const bufferHours = Math.round(totalHours * 0.35 * 10) / 10;
   const finalHours = Math.round((totalHours + bufferHours) * 10) / 10;
 
@@ -81,8 +153,8 @@ export default function Editor({
       <main className="flex-1 p-8 pt-24 max-w-5xl mx-auto w-full flex flex-col gap-8">
         {/* Header */}
         <header className="flex flex-col gap-2">
-          <button 
-            onClick={onNavigateDashboard} 
+          <button
+            onClick={onNavigateDashboard}
             className="flex items-center gap-2 text-primary text-xs font-medium uppercase tracking-wider mb-1 cursor-pointer hover:underline text-left w-fit"
           >
             <Icon name="arrow_back" size={14} />
@@ -105,10 +177,27 @@ export default function Editor({
           </div>
         </header>
 
+        {/* Planning Poker legend */}
+        <div className="no-print flex flex-wrap gap-2 items-center text-[11px] text-on-surface-variant">
+          <span className="font-semibold uppercase tracking-wider mr-1">Planning Poker (Fibonacci):</span>
+          {FIBONACCI.map((fib) => (
+            <span
+              key={fib}
+              className="px-2 py-0.5 rounded bg-surface border border-outline-variant/50 font-mono font-bold text-on-surface"
+              title={FIBONACCI_LABELS[fib]}
+            >
+              {fib}
+            </span>
+          ))}
+        </div>
+
         {/* Modules */}
         {data.map((mod, modIndex) => {
-          const modTotal = mod.items.reduce((s, i) => s + calculatePERT(i.pert.o, i.pert.m, i.pert.p), 0);
-          const iconName = mod.icon || moduleIcons[modIndex % moduleIcons.length];
+          const modTotal   = mod.items.reduce((s, i) => s + calculatePERT(i.pert.o, i.pert.m, i.pert.p), 0);
+          const modSumO    = mod.items.reduce((s, i) => s + Number(i.pert.o), 0);
+          const modSumM    = mod.items.reduce((s, i) => s + Number(i.pert.m), 0);
+          const modSumP    = mod.items.reduce((s, i) => s + Number(i.pert.p), 0);
+          const iconName   = mod.icon || moduleIcons[modIndex % moduleIcons.length];
 
           return (
             <section key={mod.id} className="print-break bg-surface rounded-xl shadow-lg border border-surface-high/60 overflow-hidden relative">
@@ -128,7 +217,7 @@ export default function Editor({
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setOpenIconSelector(null)} />
                       <div className="absolute top-10 left-0 z-50 bg-surface border border-outline-variant shadow-2xl rounded-xl p-3 w-64 grid grid-cols-5 gap-2">
-                        {moduleIcons.map(icon => (
+                        {moduleIcons.map((icon) => (
                           <button
                             key={icon}
                             onClick={() => {
@@ -156,8 +245,8 @@ export default function Editor({
                     onChange={(e) => onUpdateModuleTitle(mod.id, e.target.value)}
                   />
                 </div>
-                <button 
-                  onClick={() => onRemoveModule(mod.id)} 
+                <button
+                  onClick={() => onRemoveModule(mod.id)}
                   className="text-outline-variant hover:text-error transition-colors cursor-pointer no-print p-2 hover:bg-surface-high/50 rounded-lg"
                   title="Excluir Módulo"
                 >
@@ -170,7 +259,9 @@ export default function Editor({
                 {mod.items.length > 0 && (
                   <div className="grid grid-cols-[1fr_auto_auto] gap-6 mb-3 px-4 text-[11px] text-on-surface-variant uppercase tracking-wider font-medium">
                     <div>Descrição da Funcionalidade</div>
-                    <div className="w-[260px] text-center">Estimativas PERT (Horas)</div>
+                    <div className="w-[272px] text-center">
+                      Estimativas PERT (Horas) — Fibonacci
+                    </div>
                     <div className="w-[80px] text-right">Esperado</div>
                   </div>
                 )}
@@ -180,7 +271,10 @@ export default function Editor({
                   {mod.items.map((item, itemIndex) => {
                     const expected = calculatePERT(item.pert.o, item.pert.m, item.pert.p);
                     return (
-                      <div key={item.id} className="group grid grid-cols-[1fr_auto_auto] gap-6 items-center px-4 py-3 hover:bg-surface-high/20 transition-colors rounded-lg border border-transparent hover:border-surface-high/40">
+                      <div
+                        key={item.id}
+                        className="group grid grid-cols-[1fr_auto_auto] gap-6 items-center px-4 py-3 hover:bg-surface-high/20 transition-colors rounded-lg border border-transparent hover:border-surface-high/40"
+                      >
                         {/* Task name */}
                         <div className="flex items-center gap-3">
                           <Icon name="drag_indicator" className="text-outline-variant/50 cursor-grab no-print" size={16} />
@@ -195,31 +289,30 @@ export default function Editor({
                           />
                         </div>
 
-                        {/* PERT Inputs O/M/P */}
-                        <div className="w-[260px] flex gap-3 justify-center no-print">
-                          {(['o', 'm', 'p'] as const).map((key) => (
-                            <div key={key} className="relative w-20">
-                              <label className={`absolute -top-2 left-2 px-1 text-[10px] z-10 ${
-                                key === 'm' ? 'text-primary font-bold bg-surface' : 'text-outline bg-surface'
-                              }`}>
-                                {key.toUpperCase()}
-                              </label>
-                              <input
-                                type="number"
-                                className={`w-full h-10 rounded text-on-surface text-center text-sm font-semibold focus:border-primary focus:ring-1 focus:ring-primary bg-surface ${
-                                  key === 'm' ? 'border-primary border-2' : 'border-outline-variant border'
-                                }`}
-                                value={item.pert[key]}
-                                onChange={(e) => onUpdateItem(mod.id, item.id, `pert.${key}`, e.target.value)}
-                              />
-                            </div>
-                          ))}
+                        {/* PERT Fibonacci Selects O/M/P */}
+                        <div className="w-[272px] flex gap-3 justify-center no-print">
+                          <FibSelect
+                            label="O"
+                            value={item.pert.o}
+                            onChange={(v) => onUpdateItem(mod.id, item.id, 'pert.o', v)}
+                          />
+                          <FibSelect
+                            label="M"
+                            value={item.pert.m}
+                            isPrimary
+                            onChange={(v) => onUpdateItem(mod.id, item.id, 'pert.m', v)}
+                          />
+                          <FibSelect
+                            label="P"
+                            value={item.pert.p}
+                            onChange={(v) => onUpdateItem(mod.id, item.id, 'pert.p', v)}
+                          />
                         </div>
 
                         {/* Expected value */}
                         <div className="w-[80px] flex justify-end items-center gap-2">
-                          <span className="text-sm font-semibold text-on-surface bg-surface-high/50 px-3 py-1 rounded">
-                            {expected}
+                          <span className="text-sm font-semibold text-on-surface bg-surface-high/50 px-3 py-1 rounded tabular-nums">
+                            {fmt(expected)}
                           </span>
                           <button
                             onClick={() => onRemoveItem(mod.id, item.id)}
@@ -243,13 +336,50 @@ export default function Editor({
                 </button>
               </div>
 
-              {/* Module Subtotal */}
-              <div className="bg-surface-high/20 border-t border-surface-high/40 px-6 py-3 flex justify-end">
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="text-on-surface-variant">Subtotal do Módulo:</span>
-                  <span className="text-on-surface font-bold">{modTotal} hrs</span>
+              {/* Module Footer — O/M/P sums + subtotal */}
+              {mod.items.length > 0 && (
+                <div className="bg-surface-high/20 border-t border-surface-high/40 px-6 py-3">
+                  <div className="flex items-center justify-between">
+                    {/* Sum of O, M, P columns */}
+                    <div className="flex items-center gap-6 text-xs text-on-surface-variant no-print">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium uppercase tracking-wider">Σ O:</span>
+                        <span className="font-bold text-on-surface tabular-nums bg-surface px-2 py-0.5 rounded border border-outline-variant/40">
+                          {modSumO}h
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium uppercase tracking-wider text-primary">Σ M:</span>
+                        <span className="font-bold text-primary tabular-nums bg-primary-container px-2 py-0.5 rounded border border-primary/30">
+                          {modSumM}h
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium uppercase tracking-wider">Σ P:</span>
+                        <span className="font-bold text-on-surface tabular-nums bg-surface px-2 py-0.5 rounded border border-outline-variant/40">
+                          {modSumP}h
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Subtotal */}
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="text-on-surface-variant">Subtotal do Módulo:</span>
+                      <span className="text-on-surface font-bold tabular-nums">{fmt(modTotal)} hrs</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Empty module footer (no items) */}
+              {mod.items.length === 0 && (
+                <div className="bg-surface-high/20 border-t border-surface-high/40 px-6 py-3 flex justify-end">
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="text-on-surface-variant">Subtotal do Módulo:</span>
+                    <span className="text-on-surface font-bold tabular-nums">0 hrs</span>
+                  </div>
+                </div>
+              )}
             </section>
           );
         })}
@@ -275,7 +405,7 @@ export default function Editor({
             <div className="flex flex-col">
               <span className="text-[11px] text-outline uppercase tracking-wider font-medium">Total Líquido</span>
               <span className="text-xl font-bold text-on-surface tabular-nums">
-                {totalHours} <span className="text-xs text-outline-variant font-normal">hrs</span>
+                {fmt(totalHours)} <span className="text-xs text-outline-variant font-normal">hrs</span>
               </span>
             </div>
             <div className="w-px h-10 bg-outline-variant/30" />
@@ -285,7 +415,7 @@ export default function Editor({
                 <span className="bg-primary-container text-primary text-[10px] px-1.5 py-0.5 rounded font-bold">35%</span>
               </div>
               <span className="text-xl font-bold text-primary tabular-nums">
-                +{bufferHours} <span className="text-xs text-primary/60 font-normal">hrs</span>
+                +{fmt(bufferHours)} <span className="text-xs text-primary/60 font-normal">hrs</span>
               </span>
             </div>
           </div>
@@ -294,7 +424,7 @@ export default function Editor({
             <div className="flex flex-col items-end">
               <span className="text-xs text-primary uppercase tracking-wider font-bold">Total Estimado</span>
               <span className="text-3xl font-bold text-primary leading-none tabular-nums">
-                {finalHours} <span className="text-base text-primary/60 font-normal">hrs</span>
+                {fmt(finalHours)} <span className="text-base text-primary/60 font-normal">hrs</span>
               </span>
             </div>
           </div>

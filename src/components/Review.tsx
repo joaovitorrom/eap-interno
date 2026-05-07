@@ -10,9 +10,16 @@ interface ReviewProps {
   isExporting: boolean;
 }
 
-const calculatePERT = (o: number, m: number, p: number) => {
+const calculatePERT = (o: number, m: number, p: number): number => {
   const res = (Number(o) + 4 * Number(m) + Number(p)) / 6;
-  return isNaN(res) ? 0 : Math.round(res * 10) / 10;
+  if (isNaN(res)) return 0;
+  return Math.round(res * 10) / 10;
+};
+
+/** Format a number with exactly 1 decimal when needed, no trailing noise */
+const fmt = (n: number): string => {
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 };
 
 const calculateVariance = (o: number, p: number) => {
@@ -119,8 +126,8 @@ export default function Review({ projectName, data, onNavigateEditor, onExportCS
                   <td className="text-center px-4 py-3 text-on-surface-variant tabular-nums">{row.isModule ? '–' : row.o}</td>
                   <td className="text-center px-4 py-3 text-on-surface-variant tabular-nums">{row.isModule ? '–' : row.m}</td>
                   <td className="text-center px-4 py-3 text-on-surface-variant tabular-nums">{row.isModule ? '–' : row.p}</td>
-                  <td className="text-right px-4 py-3 text-primary font-semibold tabular-nums">{row.expected}</td>
-                  <td className="text-right px-6 py-3 text-on-surface-variant tabular-nums">{row.variance}</td>
+                  <td className="text-right px-4 py-3 text-primary font-semibold tabular-nums">{fmt(row.expected)}</td>
+                  <td className="text-right px-6 py-3 text-on-surface-variant tabular-nums">{fmt(row.variance)}</td>
                 </tr>
               ))}
             </tbody>
@@ -132,16 +139,16 @@ export default function Review({ projectName, data, onNavigateEditor, onExportCS
           <div className="bg-surface rounded-xl p-6 border border-surface-high/60 shadow-lg">
             <div className="text-[11px] text-on-surface-variant uppercase tracking-wider font-medium mb-3">Duração Total (TE)</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-on-surface tabular-nums">{finalHours}</span>
+              <span className="text-4xl font-bold text-on-surface tabular-nums">{fmt(finalHours)}</span>
               <span className="text-on-surface-variant text-sm">Horas</span>
             </div>
-            <div className="mt-2 text-xs text-outline">Inclui buffer de 35% ({bufferHours}h)</div>
+            <div className="mt-2 text-xs text-outline">Inclui buffer de 35% ({fmt(bufferHours)}h)</div>
           </div>
 
           <div className="bg-surface rounded-xl p-6 border border-surface-high/60 shadow-lg">
             <div className="text-[11px] text-on-surface-variant uppercase tracking-wider font-medium mb-3">Variância do Projeto (V)</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-on-surface tabular-nums">{totalVariance}</span>
+              <span className="text-4xl font-bold text-on-surface tabular-nums">{fmt(totalVariance)}</span>
               <span className="text-on-surface-variant text-sm">σ²</span>
             </div>
           </div>
@@ -149,11 +156,11 @@ export default function Review({ projectName, data, onNavigateEditor, onExportCS
           <div className="bg-surface rounded-xl p-6 border border-primary/30 shadow-lg">
             <div className="text-[11px] text-on-surface-variant uppercase tracking-wider font-medium mb-3">Desvio Padrão (Σ)</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-primary tabular-nums">{stdDev}</span>
+              <span className="text-4xl font-bold text-primary tabular-nums">{fmt(stdDev)}</span>
               <span className="text-on-surface-variant text-sm">Horas</span>
             </div>
             <div className="mt-3 text-xs text-outline bg-bg/50 rounded-lg p-2">
-              95% Intervalo de Confiança: {lower95} – {upper95} Horas
+              95% Intervalo de Confiança: {fmt(lower95)} – {fmt(upper95)} Horas
             </div>
           </div>
         </div>
