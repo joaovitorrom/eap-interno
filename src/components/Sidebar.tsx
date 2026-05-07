@@ -1,10 +1,10 @@
 import Icon from './Icon';
 
 interface SidebarProps {
-  activeView: 'dashboard' | 'editor' | 'review';
+  activeView: 'dashboard' | 'editor' | 'review' | 'converter';
   projectName?: string;
   darkMode: boolean;
-  onNavigate: (view: 'dashboard' | 'editor' | 'review') => void;
+  onNavigate: (view: 'dashboard' | 'editor' | 'review' | 'converter') => void;
   onNewProject: () => void;
   onToggleDark: () => void;
   onOpenHelp: () => void;
@@ -14,6 +14,7 @@ export default function Sidebar({ activeView, projectName, darkMode, onNavigate,
   const navItems = [
     { id: 'dashboard' as const, icon: 'dashboard', label: 'Dashboard' },
     { id: 'editor' as const, icon: 'folder_copy', label: 'Projetos' },
+    { id: 'converter' as const, icon: 'schedule', label: 'Conversor de Horas' },
   ];
 
   return (
@@ -59,7 +60,8 @@ export default function Sidebar({ activeView, projectName, darkMode, onNavigate,
       {/* Navigation */}
       <nav className="flex-1 flex flex-col gap-1 text-sm font-medium">
         {navItems.map((item) => {
-          const isActive = activeView === item.id || (item.id === 'editor' && activeView === 'review');
+          const isActive = activeView === item.id
+            || (item.id === 'editor' && activeView === 'review');
           return (
             <button
               key={item.id}

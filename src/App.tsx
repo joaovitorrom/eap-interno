@@ -3,13 +3,14 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Editor from './components/Editor';
 import Review from './components/Review';
+import TimeConverter from './components/TimeConverter';
 import HelpModal from './components/HelpModal';
 import {
   fetchProjects, fetchProjectData, createProject, saveProject, deleteProject,
   type Project, type ProjectModule,
 } from './api';
 
-type View = 'dashboard' | 'editor' | 'review';
+type View = 'dashboard' | 'editor' | 'review' | 'converter';
 
 const calculatePERT = (o: number, m: number, p: number) => {
   const res = (Number(o) + 4 * Number(m) + Number(p)) / 6;
@@ -219,7 +220,7 @@ export default function App() {
     <div className="min-h-screen flex">
       <Sidebar
         activeView={view}
-        projectName={view !== 'dashboard' ? projectName : undefined}
+        projectName={view !== 'dashboard' && view !== 'converter' ? projectName : undefined}
         darkMode={darkMode}
         onNavigate={handleNavigate}
         onNewProject={handleNewProject}
@@ -268,6 +269,12 @@ export default function App() {
             onExportCSV={handleExportCSV}
             onCopyJSON={handleCopyJSON}
             isExporting={isExporting}
+          />
+        )}
+
+        {view === 'converter' && (
+          <TimeConverter
+            onNavigateDashboard={() => handleNavigate('dashboard')}
           />
         )}
       </div>
