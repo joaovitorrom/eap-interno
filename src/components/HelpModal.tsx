@@ -50,11 +50,11 @@ export default function HelpModal({ open, onClose }: HelpModalProps) {
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-primary font-bold text-xs mt-0.5">2.</span>
-                <span><strong className="text-on-surface">Módulos</strong> → Grandes blocos de funcionalidade (ex: "Autenticação", "Agendamento")</span>
+                <span><strong className="text-on-surface">Módulos</strong> → Grandes blocos de funcionalidade, equivalentes às <b>Épicos</b> (ex: "Dashboard Financeiro", "Histórico", "Configurações")</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-primary font-bold text-xs mt-0.5">3.</span>
-                <span><strong className="text-on-surface">Tarefas</strong> → Funcionalidades específicas e estimáveis (ex: "Login com OAuth")</span>
+                <span><strong className="text-on-surface">Tarefas</strong> → Funcionalidades específicas e estimáveis, equivalentes às <b>Histórias de Usuário</b> (ex: "Login com E-mail e Senha", "Esqueci minha senha", "Cadastro de novo usuário", etc)</span>
               </div>
             </div>
           </section>
