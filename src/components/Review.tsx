@@ -4,6 +4,7 @@ import type { ProjectModule } from '../api';
 interface ReviewProps {
   projectName: string;
   data: ProjectModule[];
+  bufferPct: number;
   onNavigateEditor: () => void;
   onExportCSV: () => void;
   onCopyJSON: () => void;
@@ -27,7 +28,7 @@ const calculateVariance = (o: number, p: number) => {
   return isNaN(v) ? 0 : Math.round(v * 100) / 100;
 };
 
-export default function Review({ projectName, data, onNavigateEditor, onExportCSV, onCopyJSON, isExporting }: ReviewProps) {
+export default function Review({ projectName, data, bufferPct, onNavigateEditor, onExportCSV, onCopyJSON, isExporting }: ReviewProps) {
   // Flatten data for WBS table
   type WBSRow = { isModule: boolean; wbsId: string; label: string; o: number; m: number; p: number; expected: number; variance: number };
   const rows: WBSRow[] = [];
@@ -53,7 +54,7 @@ export default function Review({ projectName, data, onNavigateEditor, onExportCS
   const totalExpected = rows.filter(r => !r.isModule).reduce((s, r) => s + r.expected, 0);
   const totalVariance = rows.filter(r => !r.isModule).reduce((s, r) => s + r.variance, 0);
   const stdDev = Math.round(Math.sqrt(totalVariance) * 100) / 100;
-  const bufferHours = Math.round(totalExpected * 0.35 * 10) / 10;
+  const bufferHours = Math.round(totalExpected * (bufferPct / 100) * 10) / 10;
   const finalHours = Math.round((totalExpected + bufferHours) * 10) / 10;
 
   // 95% confidence interval
@@ -142,7 +143,7 @@ export default function Review({ projectName, data, onNavigateEditor, onExportCS
               <span className="text-4xl font-bold text-on-surface tabular-nums">{fmt(finalHours)}</span>
               <span className="text-on-surface-variant text-sm">Horas</span>
             </div>
-            <div className="mt-2 text-xs text-outline">Inclui buffer de 35% ({fmt(bufferHours)}h)</div>
+            <div className="mt-2 text-xs text-outline">Inclui buffer de {bufferPct}% ({fmt(bufferHours)}h)</div>
           </div>
 
           <div className="bg-surface rounded-xl p-6 border border-surface-high/60 shadow-lg">

@@ -7,6 +7,8 @@ interface EditorProps {
   data: ProjectModule[];
   saving: boolean;
   saveMsg: string;
+  bufferPct: number;
+  onBufferChange: (v: number) => void;
   onProjectNameChange: (name: string) => void;
   onSave: () => void;
   onAddModule: () => void;
@@ -137,7 +139,7 @@ function HourSelect({ label, value, isPrimary = false, onChange }: HourSelectPro
 
 // ─── Main Editor ───────────────────────────────────────────────────────────────
 export default function Editor({
-  projectName, data, saving, saveMsg,
+  projectName, data, saving, saveMsg, bufferPct, onBufferChange,
   onProjectNameChange, onSave, onAddModule, onRemoveModule,
   onUpdateModuleTitle, onUpdateModuleIcon, onAddItem, onRemoveItem, onUpdateItem,
   onNavigateReview, onNavigateDashboard, onExportCSV, onCopyJSON, isExporting,
@@ -148,8 +150,9 @@ export default function Editor({
     (acc, mod) => acc + mod.items.reduce((sum, item) => sum + calculatePERT(item.pert.o, item.pert.m, item.pert.p), 0),
     0,
   );
-  const bufferHours = Math.round(totalHours * 0.35 * 10) / 10;
-  const finalHours = Math.round((totalHours + bufferHours) * 10) / 10;
+  const pct = Math.max(0, Math.min(200, bufferPct)) / 100;
+  const bufferHours = Math.round(totalHours * pct * 10) / 10;
+  const finalHours  = Math.round((totalHours + bufferHours) * 10) / 10;
 
   return (
     <div className="flex-1 flex flex-col min-h-screen pb-28">
@@ -453,11 +456,27 @@ export default function Editor({
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] sm:text-[11px] text-outline uppercase tracking-wider font-medium">Buffer</span>
-                <span className="bg-primary-container text-primary text-[10px] px-1.5 py-0.5 rounded font-bold">35%</span>
               </div>
-              <span className="text-lg sm:text-xl font-bold text-primary tabular-nums">
-                +{fmt(bufferHours)} <span className="text-xs text-primary/60 font-normal">hrs</span>
-              </span>
+              {/* Inline editable buffer % */}
+              <div className="flex items-center gap-1">
+                <span className="text-lg sm:text-xl font-bold text-primary tabular-nums">+{fmt(bufferHours)}</span>
+                <span className="text-xs text-primary/60 font-normal">hrs</span>
+                <span className="text-primary/40 mx-1 text-sm">/</span>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    max={200}
+                    value={bufferPct}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v)) onBufferChange(Math.max(0, Math.min(200, v)));
+                    }}
+                    className="w-12 text-center text-sm font-bold text-primary bg-primary-container border border-primary/30 rounded focus:outline-none focus:ring-1 focus:ring-primary py-0.5 tabular-nums"
+                  />
+                  <span className="text-xs text-primary font-bold ml-0.5">%</span>
+                </div>
+              </div>
             </div>
           </div>
 

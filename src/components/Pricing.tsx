@@ -5,6 +5,8 @@ import type { ProjectModule } from '../api';
 interface PricingProps {
   projectName: string;
   data: ProjectModule[];
+  bufferPct: number;
+  onBufferChange: (v: number) => void;
   onNavigateDashboard: () => void;
   onNavigateEditor: () => void;
 }
@@ -58,7 +60,7 @@ const fmtBRL = (n: number) =>
   n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 export default function Pricing({
-  projectName, data, onNavigateDashboard, onNavigateEditor,
+  projectName, data, bufferPct, onBufferChange, onNavigateDashboard, onNavigateEditor,
 }: PricingProps) {
   const [hourlyRate, setHourlyRate] = useState(40);
   const [rateInput, setRateInput] = useState('40');
@@ -68,10 +70,10 @@ export default function Pricing({
     (acc, mod) => acc + mod.items.reduce((s, i) => s + calculatePERT(i.pert.o, i.pert.m, i.pert.p), 0),
     0,
   );
-  const buffer = Math.round(totalPERT * 0.35 * 10) / 10;
-  const totalHours = Math.round((totalPERT + buffer) * 10) / 10;
-  const totalPrice = Math.round(totalHours * hourlyRate * 100) / 100;
-  const minPrice   = Math.round(totalPERT * hourlyRate * 100) / 100;
+  const buffer     = Math.round(totalPERT * (bufferPct / 100) * 10) / 10;
+  const totalHours  = Math.round((totalPERT + buffer) * 10) / 10;
+  const totalPrice  = Math.round(totalHours * hourlyRate * 100) / 100;
+  const minPrice    = Math.round(totalPERT * hourlyRate * 100) / 100;
 
   // Per-module breakdown
   const modules = data.map((mod) => {
@@ -83,7 +85,7 @@ export default function Pricing({
       return { ...item, expected, sp, itemMinPrice, itemMaxPrice };
     });
     const modHours     = items.reduce((s, i) => s + i.expected, 0);
-    const modBuf       = Math.round(modHours * 0.35 * 10) / 10;
+    const modBuf       = Math.round(modHours * (bufferPct / 100) * 10) / 10;
     const modTotal     = Math.round((modHours + modBuf) * 10) / 10;
     const modPrice     = Math.round(modTotal * hourlyRate * 100) / 100;
     const modSP        = items.reduce((s, i) => s + i.sp, 0);
@@ -208,9 +210,25 @@ export default function Pricing({
             <span className="text-3xl font-bold text-on-surface tabular-nums">{fmt(totalPERT)}<span className="text-base text-on-surface-variant font-normal ml-1">h</span></span>
             <span className="text-xs text-outline">Σ PERT s/ buffer</span>
           </div>
-          {/* Buffer */}
-          <div className="bg-surface rounded-xl p-5 border border-surface-high/60 shadow-lg flex flex-col gap-2">
-            <span className="text-[10px] text-on-surface-variant uppercase tracking-wider font-medium">Buffer (35%)</span>
+          {/* Buffer — editable % */}
+          <div className="bg-surface rounded-xl p-5 border border-primary/20 shadow-lg flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] text-on-surface-variant uppercase tracking-wider font-medium">Buffer</span>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={0}
+                  max={200}
+                  value={bufferPct}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    if (!isNaN(v)) onBufferChange(Math.max(0, Math.min(200, v)));
+                  }}
+                  className="w-12 text-center text-xs font-bold text-primary bg-primary-container border border-primary/30 rounded focus:outline-none focus:ring-1 focus:ring-primary py-0.5 tabular-nums"
+                />
+                <span className="text-xs text-primary font-bold">%</span>
+              </div>
+            </div>
             <span className="text-3xl font-bold text-primary tabular-nums">+{fmt(buffer)}<span className="text-base text-primary/60 font-normal ml-1">h</span></span>
             <span className="text-xs text-outline">Margem de segurança</span>
           </div>

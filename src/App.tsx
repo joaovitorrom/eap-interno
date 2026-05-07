@@ -28,6 +28,7 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [bufferPct, setBufferPct] = useState(35);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('eap_theme') !== 'light');
   const [helpOpen, setHelpOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -246,6 +247,8 @@ export default function App() {
             data={data}
             saving={saving}
             saveMsg={saveMsg}
+            bufferPct={bufferPct}
+            onBufferChange={setBufferPct}
             onProjectNameChange={handleProjectNameChange}
             onSave={() => void doSave(projectId, projectName, data)}
             onAddModule={handleAddModule}
@@ -267,6 +270,7 @@ export default function App() {
           <Review
             projectName={projectName}
             data={data}
+            bufferPct={bufferPct}
             onNavigateEditor={() => setView('editor')}
             onExportCSV={handleExportCSV}
             onCopyJSON={handleCopyJSON}
@@ -293,6 +297,8 @@ export default function App() {
           <Pricing
             projectName={projectName}
             data={data}
+            bufferPct={bufferPct}
+            onBufferChange={setBufferPct}
             onNavigateDashboard={() => handleNavigate('dashboard')}
             onNavigateEditor={() => setView('editor')}
           />
