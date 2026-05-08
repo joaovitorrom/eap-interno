@@ -16,15 +16,18 @@ const SP_TABLE: {
   sp: number;
   effortMin: number;
   effortMax: number;
+  effortLabel?: string;   // optional override for display (e.g. "0,5h")
   profile: string;
   isEpic?: boolean;
 }[] = [
-  { sp: 1,  effortMin: 2,  effortMax: 4,  profile: 'Pequenos ajustes, textos ou cores.' },
-  { sp: 2,  effortMin: 6,  effortMax: 10, profile: 'Telas simples ou CRUDs básicos.' },
-  { sp: 3,  effortMin: 12, effortMax: 18, profile: 'Lógica intermediária ou integrações simples.' },
-  { sp: 5,  effortMin: 24, effortMax: 36, profile: 'Funcionalidades centrais ou regras complexas.' },
-  { sp: 8,  effortMin: 40, effortMax: 60, profile: 'Módulos inteiros (ex: checkout, chat, busca).' },
-  { sp: 13, effortMin: 0,  effortMax: 0,  profile: 'Epic: Deve ser quebrado em histórias menores.', isEpic: true },
+  { sp: 1,  effortMin: 0.5, effortMax: 0.5, effortLabel: '30 min',        profile: 'Correções pontuais ou micro-ajustes.' },
+  { sp: 1,  effortMin: 1,   effortMax: 1,   effortLabel: '1h',             profile: 'Tarefas muito pequenas e bem definidas.' },
+  { sp: 1,  effortMin: 2,   effortMax: 4,   profile: 'Pequenos ajustes, textos ou cores.' },
+  { sp: 2,  effortMin: 6,   effortMax: 10,  profile: 'Telas simples ou CRUDs básicos.' },
+  { sp: 3,  effortMin: 12,  effortMax: 18,  profile: 'Lógica intermediária ou integrações simples.' },
+  { sp: 5,  effortMin: 24,  effortMax: 36,  profile: 'Funcionalidades centrais ou regras complexas.' },
+  { sp: 8,  effortMin: 40,  effortMax: 60,  profile: 'Módulos inteiros (ex: checkout, chat, busca).' },
+  { sp: 13, effortMin: 0,   effortMax: 0,   profile: 'Epic: Deve ser quebrado em histórias menores.', isEpic: true },
 ];
 
 const SP_COLORS: Record<number, { bg: string; text: string; border: string }> = {
@@ -372,19 +375,26 @@ export default function Pricing({
                 </tr>
               </thead>
               <tbody>
-                {SP_TABLE.map((row) => {
+                {SP_TABLE.map((row, idx) => {
                   const colors = SP_COLORS[row.sp];
                   const dynMin = row.isEpic ? null : Math.round(row.effortMin * hourlyRate);
                   const dynMax = row.isEpic ? null : Math.round(row.effortMax * hourlyRate);
+                  const effortDisplay = row.isEpic
+                    ? <span className="text-rose-400">—</span>
+                    : row.effortLabel
+                      ? row.effortLabel
+                      : row.effortMin === row.effortMax
+                        ? `${row.effortMin}h`
+                        : `${row.effortMin}h – ${row.effortMax}h`;
                   return (
-                    <tr key={row.sp} className={`border-b border-surface-high/20 ${row.isEpic ? 'bg-rose-500/5' : 'hover:bg-surface-high/10'}`}>
+                    <tr key={idx} className={`border-b border-surface-high/20 ${row.isEpic ? 'bg-rose-500/5' : 'hover:bg-surface-high/10'}`}>
                       <td className="px-5 py-3">
                         <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm border ${colors.bg} ${colors.text} ${colors.border}`}>
                           {row.sp}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-on-surface-variant tabular-nums">
-                        {row.isEpic ? <span className="text-rose-400">—</span> : `${row.effortMin}h – ${row.effortMax}h`}
+                        {effortDisplay}
                       </td>
                       <td className="px-5 py-3 font-semibold text-on-surface tabular-nums">
                         {dynMin !== null ? fmtBRL(dynMin) : <span className="text-rose-400">N/A</span>}
