@@ -10,15 +10,16 @@ interface PlanningPokerProps {
 
 // Table mapping SP → effort + price (at base R$40/h)
 const SP_TABLE: { sp: number; effortMin: number; effortMax: number; priceMin: number; priceMax: number; profile: string; isEpic?: boolean }[] = [
-  { sp: 1,  effortMin: 2,  effortMax: 4,  priceMin: 80,   priceMax: 160,  profile: 'Pequenos ajustes, textos ou cores.' },
-  { sp: 2,  effortMin: 6,  effortMax: 10, priceMin: 240,  priceMax: 400,  profile: 'Telas simples ou CRUDs básicos.' },
-  { sp: 3,  effortMin: 12, effortMax: 18, priceMin: 480,  priceMax: 720,  profile: 'Lógica intermediária ou integrações simples.' },
-  { sp: 5,  effortMin: 24, effortMax: 36, priceMin: 960,  priceMax: 1440, profile: 'Funcionalidades centrais ou regras complexas.' },
-  { sp: 8,  effortMin: 40, effortMax: 60, priceMin: 1600, priceMax: 2400, profile: 'Módulos inteiros (ex: checkout, chat, busca).' },
-  { sp: 13, effortMin: 0,  effortMax: 0,  priceMin: 0,    priceMax: 0,    profile: 'Epic: Deve ser quebrado em histórias menores.', isEpic: true },
+  { sp: 1,  effortMin: 0.5, effortMax: 4,  priceMin: 20,   priceMax: 160,  profile: 'Ajustes pontuais, textos ou cores.' },
+  { sp: 2,  effortMin: 5,   effortMax: 10, priceMin: 200,  priceMax: 400,  profile: 'Telas simples ou CRUDs básicos.' },
+  { sp: 3,  effortMin: 12,  effortMax: 18, priceMin: 480,  priceMax: 720,  profile: 'Lógica intermediária ou integrações simples.' },
+  { sp: 5,  effortMin: 24,  effortMax: 36, priceMin: 960,  priceMax: 1440, profile: 'Funcionalidades centrais ou regras complexas.' },
+  { sp: 8,  effortMin: 40,  effortMax: 60, priceMin: 1600, priceMax: 2400, profile: 'Módulos inteiros (ex: checkout, chat, busca).' },
+  { sp: 13, effortMin: 0,   effortMax: 0,  priceMin: 0,    priceMax: 0,    profile: 'Epic: Deve ser quebrado em histórias menores.', isEpic: true },
 ];
 
 const SP_COLORS: Record<number, { bg: string; text: string; border: string }> = {
+  0:  { bg: 'bg-outline-variant/10', text: 'text-outline',        border: 'border-outline-variant/20' },
   1:  { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
   2:  { bg: 'bg-teal-500/10',    text: 'text-teal-400',    border: 'border-teal-500/30' },
   3:  { bg: 'bg-sky-500/10',     text: 'text-sky-400',     border: 'border-sky-500/30' },
@@ -29,9 +30,9 @@ const SP_COLORS: Record<number, { bg: string; text: string; border: string }> = 
 
 /** Derive a Story Point value from PERT expected hours */
 function hoursToSP(hours: number): number {
-  if (hours <= 0)  return 1;
-  if (hours <= 4)  return 1;
-  if (hours <= 10) return 2;
+  if (hours <= 0)  return 0;   // Sem horas = 0 SP
+  if (hours <= 4)  return 1;   // 0,5h · 1h · 2h · 3h · 4h → SP 1
+  if (hours <= 10) return 2;   // 5h … 10h → SP 2
   if (hours <= 18) return 3;
   if (hours <= 36) return 5;
   if (hours <= 60) return 8;

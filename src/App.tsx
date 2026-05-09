@@ -9,6 +9,7 @@ import Pricing from './components/Pricing';
 import HelpModal from './components/HelpModal';
 import {
   fetchProjects, fetchProjectData, createProject, saveProject, deleteProject,
+  exportAllProjectsJSON, importProjectsJSON,
   type Project, type ProjectModule,
 } from './api';
 
@@ -218,6 +219,28 @@ export default function App() {
     }
   }
 
+  // ─── Backup / Restore ─────────────────────
+  function handleExportBackup() {
+    const json = exportAllProjectsJSON();
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `eap_backup_${date}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleImportBackup(file: File): Promise<{ count: number }> {
+    const json = await file.text();
+    const count = importProjectsJSON(json);
+    await loadProjects();
+    return { count };
+  }
+
   // ─── Render ──────────────────────────────────────
   return (
     <div className="min-h-screen flex">
@@ -238,6 +261,8 @@ export default function App() {
             onOpenProject={handleOpenProject}
             onNewProject={handleNewProject}
             onDeleteProject={handleDeleteProject}
+            onExportBackup={handleExportBackup}
+            onImportBackup={handleImportBackup}
           />
         )}
 

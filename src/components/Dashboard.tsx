@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Icon from './Icon';
 import type { Project } from '../api';
 
@@ -7,6 +7,8 @@ interface DashboardProps {
   onOpenProject: (id: string) => void;
   onNewProject: () => void;
   onDeleteProject: (id: string) => void;
+  onExportBackup: () => void;
+  onImportBackup: (file: File) => Promise<{ count: number }>;
 }
 
 function timeAgo(dateStr?: string): string {
@@ -22,8 +24,28 @@ function timeAgo(dateStr?: string): string {
   return new Date(dateStr).toLocaleDateString('pt-BR');
 }
 
-export default function Dashboard({ projects, onOpenProject, onNewProject, onDeleteProject }: DashboardProps) {
+export default function Dashboard({ projects, onOpenProject, onNewProject, onDeleteProject, onExportBackup, onImportBackup }: DashboardProps) {
   const [search, setSearch] = useState('');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function showToast(type: 'success' | 'error', msg: string) {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const { count } = await onImportBackup(file);
+      showToast('success', `${count} projeto${count !== 1 ? 's' : ''} importado${count !== 1 ? 's' : ''} com sucesso!`);
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Erro ao importar backup.');
+    } finally {
+      e.target.value = '';
+    }
+  }
 
   const filtered = projects.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -41,7 +63,7 @@ export default function Dashboard({ projects, onOpenProject, onNewProject, onDel
             Gerencie suas estimativas PERT e estruturas analíticas de projeto.
           </p>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
           <div className="relative flex-1 md:w-64">
             <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" size={20} />
             <input
@@ -52,6 +74,34 @@ export default function Dashboard({ projects, onOpenProject, onNewProject, onDel
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          {/* Import backup */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Importar backup JSON"
+            className="hidden md:flex items-center gap-2 border border-outline-variant text-on-surface-variant py-2.5 px-4 rounded-lg text-xs font-medium hover:bg-surface hover:text-primary hover:border-primary transition-all cursor-pointer"
+          >
+            <Icon name="upload" size={16} />
+            Importar
+          </button>
+
+          {/* Export backup */}
+          <button
+            onClick={onExportBackup}
+            title="Exportar todos os projetos como backup JSON"
+            className="hidden md:flex items-center gap-2 border border-outline-variant text-on-surface-variant py-2.5 px-4 rounded-lg text-xs font-medium hover:bg-surface hover:text-primary hover:border-primary transition-all cursor-pointer"
+          >
+            <Icon name="download" size={16} />
+            Backup
+          </button>
+
           <button
             onClick={onNewProject}
             className="hidden md:flex items-center gap-2 bg-primary text-white py-2.5 px-5 rounded-lg text-xs font-medium hover:bg-primary-dim transition-all shadow-sm shadow-primary/20 cursor-pointer"
@@ -61,6 +111,20 @@ export default function Dashboard({ projects, onOpenProject, onNewProject, onDel
           </button>
         </div>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl border text-sm font-medium transition-all animate-fade-in ${
+            toast.type === 'success'
+              ? 'bg-surface border-emerald-500/40 text-emerald-400'
+              : 'bg-surface border-rose-500/40 text-rose-400'
+          }`}
+        >
+          <Icon name={toast.type === 'success' ? 'check_circle' : 'error'} size={18} />
+          {toast.msg}
+        </div>
+      )}
 
       {/* Project Grid */}
       {filtered.length === 0 ? (

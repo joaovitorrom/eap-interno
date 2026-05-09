@@ -104,3 +104,58 @@ export async function deleteProject(id: string): Promise<void> {
   const all = getAll();
   saveAll(all.filter(p => p.id !== id));
 }
+
+// ─── Backup / Restore ────────────────────────────────
+
+/** Serializa todos os projetos para uma string JSON (download de backup) */
+export function exportAllProjectsJSON(): string {
+  const all = getAll();
+  return JSON.stringify({ version: 1, exported_at: new Date().toISOString(), projects: all }, null, 2);
+}
+
+/** Importa projetos de um JSON de backup, mesclando com os existentes.
+ *  Projetos com o mesmo `id` serão substituídos pelo backup.
+ *  Retorna o número de projetos importados.
+ */
+export function importProjectsJSON(json: string): number {
+  const parsed: unknown = JSON.parse(json);
+
+  // Suporta dois formatos:
+  // 1. { version, projects: [...] }  — gerado por exportAllProjectsJSON
+  // 2. Array direto de StoredProject  — compatibilidade futura
+  let incoming: StoredProject[];
+  if (Array.isArray(parsed)) {
+    incoming = parsed as StoredProject[];
+  } else if (
+    parsed !== null &&
+    typeof parsed === 'object' &&
+    'projects' in parsed &&
+    Array.isArray((parsed as Record<string, unknown>).projects)
+  ) {
+    incoming = (parsed as { projects: StoredProject[] }).projects;
+  } else {
+    throw new Error('Formato de backup inválido.');
+  }
+
+  // Validação mínima de schema
+  for (const p of incoming) {
+    if (typeof p.id !== 'string' || typeof p.name !== 'string' || !Array.isArray(p.data)) {
+      throw new Error('Arquivo de backup corrompido ou em formato desconhecido.');
+    }
+  }
+
+  const existing = getAll();
+  const existingIds = new Set(existing.map(p => p.id));
+
+  // Projetos que existem localmente: substituir pelo backup
+  const updated = existing.map(local => {
+    const fromBackup = incoming.find(b => b.id === local.id);
+    return fromBackup ?? local;
+  });
+
+  // Projetos do backup que não existem localmente: inserir
+  const newOnes = incoming.filter(b => !existingIds.has(b.id));
+
+  saveAll([...updated, ...newOnes]);
+  return incoming.length;
+}

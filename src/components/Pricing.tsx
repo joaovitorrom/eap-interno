@@ -31,6 +31,7 @@ const SP_TABLE: {
 ];
 
 const SP_COLORS: Record<number, { bg: string; text: string; border: string }> = {
+  0:  { bg: 'bg-outline-variant/10', text: 'text-outline',        border: 'border-outline-variant/20' },
   1:  { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
   2:  { bg: 'bg-teal-500/10',    text: 'text-teal-400',    border: 'border-teal-500/30' },
   3:  { bg: 'bg-sky-500/10',     text: 'text-sky-400',     border: 'border-sky-500/30' },
@@ -45,7 +46,7 @@ const calculatePERT = (o: number, m: number, p: number): number => {
 };
 
 function hoursToSP(hours: number): number {
-  if (hours <= 0)  return 1;
+  if (hours <= 0)  return 0;   // Sem horas = 0 SP
   if (hours <= 4)  return 1;   // 0,5h · 1h · 2h · 3h · 4h → SP 1
   if (hours <= 10) return 2;   // 5h … 10h → SP 2
   if (hours <= 18) return 3;
