@@ -23,7 +23,7 @@ const SP_TABLE: {
   { sp: 1,  effortMin: 0.5, effortMax: 0.5, effortLabel: '30 min',        profile: 'Correções pontuais ou micro-ajustes.' },
   { sp: 1,  effortMin: 1,   effortMax: 1,   effortLabel: '1h',             profile: 'Tarefas muito pequenas e bem definidas.' },
   { sp: 1,  effortMin: 2,   effortMax: 4,   profile: 'Pequenos ajustes, textos ou cores.' },
-  { sp: 2,  effortMin: 6,   effortMax: 10,  profile: 'Telas simples ou CRUDs básicos.' },
+  { sp: 2,  effortMin: 5,   effortMax: 10,  profile: 'Telas simples ou CRUDs básicos.' },
   { sp: 3,  effortMin: 12,  effortMax: 18,  profile: 'Lógica intermediária ou integrações simples.' },
   { sp: 5,  effortMin: 24,  effortMax: 36,  profile: 'Funcionalidades centrais ou regras complexas.' },
   { sp: 8,  effortMin: 40,  effortMax: 60,  profile: 'Módulos inteiros (ex: checkout, chat, busca).' },
@@ -46,8 +46,8 @@ const calculatePERT = (o: number, m: number, p: number): number => {
 
 function hoursToSP(hours: number): number {
   if (hours <= 0)  return 1;
-  if (hours <= 4)  return 1;
-  if (hours <= 10) return 2;
+  if (hours <= 4)  return 1;   // 0,5h · 1h · 2h · 3h · 4h → SP 1
+  if (hours <= 10) return 2;   // 5h … 10h → SP 2
   if (hours <= 18) return 3;
   if (hours <= 36) return 5;
   if (hours <= 60) return 8;

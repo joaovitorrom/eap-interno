@@ -27,44 +27,49 @@ interface EditorProps {
 
 /**
  * Hour options derived from the Fibonacci SP table:
- * SP 1 → 2–4h | SP 2 → 6–10h | SP 3 → 12–18h
+ * SP 1 → 0,5–4h | SP 2 → 5–10h | SP 3 → 12–18h
  * SP 5 → 24–36h | SP 8 → 40–60h | SP 13+ → >60h (Epic)
  */
 const HOUR_OPTIONS: { value: number; label: string; sp: number; epic?: boolean }[] = [
-  { value: 0,  label: '—',              sp: 0 },
-  // SP 1
-  { value: 2,  label: '2h  · SP 1',    sp: 1 },
-  { value: 3,  label: '3h  · SP 1',    sp: 1 },
-  { value: 4,  label: '4h  · SP 1',    sp: 1 },
-  // SP 2
-  { value: 6,  label: '6h  · SP 2',    sp: 2 },
-  { value: 8,  label: '8h  · SP 2',    sp: 2 },
-  { value: 10, label: '10h · SP 2',    sp: 2 },
+  { value: 0,    label: '—',               sp: 0 },
+  // SP 1 — 30 min, 1h e 2–4h
+  { value: 0.5,  label: '30min · SP 1',    sp: 1 },
+  { value: 1,    label: '1h   · SP 1',     sp: 1 },
+  { value: 2,    label: '2h   · SP 1',     sp: 1 },
+  { value: 3,    label: '3h   · SP 1',     sp: 1 },
+  { value: 4,    label: '4h   · SP 1',     sp: 1 },
+  // SP 2 — todas as horas de 5h a 10h
+  { value: 5,    label: '5h   · SP 2',     sp: 2 },
+  { value: 6,    label: '6h   · SP 2',     sp: 2 },
+  { value: 7,    label: '7h   · SP 2',     sp: 2 },
+  { value: 8,    label: '8h   · SP 2',     sp: 2 },
+  { value: 9,    label: '9h   · SP 2',     sp: 2 },
+  { value: 10,   label: '10h  · SP 2',     sp: 2 },
   // SP 3
-  { value: 12, label: '12h · SP 3',    sp: 3 },
-  { value: 15, label: '15h · SP 3',    sp: 3 },
-  { value: 18, label: '18h · SP 3',    sp: 3 },
+  { value: 12,   label: '12h  · SP 3',     sp: 3 },
+  { value: 15,   label: '15h  · SP 3',     sp: 3 },
+  { value: 18,   label: '18h  · SP 3',     sp: 3 },
   // SP 5
-  { value: 24, label: '24h · SP 5',    sp: 5 },
-  { value: 30, label: '30h · SP 5',    sp: 5 },
-  { value: 36, label: '36h · SP 5',    sp: 5 },
+  { value: 24,   label: '24h  · SP 5',     sp: 5 },
+  { value: 30,   label: '30h  · SP 5',     sp: 5 },
+  { value: 36,   label: '36h  · SP 5',     sp: 5 },
   // SP 8
-  { value: 40, label: '40h · SP 8',    sp: 8 },
-  { value: 48, label: '48h · SP 8',    sp: 8 },
-  { value: 60, label: '60h · SP 8',    sp: 8 },
+  { value: 40,   label: '40h  · SP 8',     sp: 8 },
+  { value: 48,   label: '48h  · SP 8',     sp: 8 },
+  { value: 60,   label: '60h  · SP 8',     sp: 8 },
   // Epic (SP 13+)
-  { value: 80, label: '80h · Epic ⚠',  sp: 13, epic: true },
+  { value: 80,   label: '80h  · Epic ⚠',  sp: 13, epic: true },
 ];
 
 /** Maps a PERT expected-hours value to its Fibonacci Story Point */
 export function hoursToSP(hours: number): number {
   if (hours <= 0)  return 0;
-  if (hours <= 4)  return 1;
-  if (hours <= 10) return 2;
-  if (hours <= 18) return 3;
-  if (hours <= 36) return 5;
-  if (hours <= 60) return 8;
-  return 13;
+  if (hours <= 4)  return 1;   // 0,5h · 1h · 2h · 3h · 4h → SP 1
+  if (hours <= 10) return 2;   // 5h … 10h → SP 2
+  if (hours <= 18) return 3;   // 12h … 18h → SP 3
+  if (hours <= 36) return 5;   // 24h … 36h → SP 5
+  if (hours <= 60) return 8;   // 40h … 60h → SP 8
+  return 13;                   // > 60h → Epic
 }
 
 const calculatePERT = (o: number, m: number, p: number): number => {
@@ -219,12 +224,12 @@ export default function Editor({
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-[11px]">
             {[
-              { sp: 1,  hours: '2–4h',  label: 'Trivial',   color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' },
-              { sp: 2,  hours: '6–10h', label: 'Pequeno',   color: 'text-teal-400 border-teal-500/30 bg-teal-500/10' },
-              { sp: 3,  hours: '12–18h',label: 'Médio',     color: 'text-sky-400 border-sky-500/30 bg-sky-500/10' },
-              { sp: 5,  hours: '24–36h',label: 'Complexo',  color: 'text-violet-400 border-violet-500/30 bg-violet-500/10' },
-              { sp: 8,  hours: '40–60h',label: 'Módulo',    color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
-              { sp: 13, hours: '>60h',  label: 'Epic ⚠',   color: 'text-rose-400 border-rose-500/30 bg-rose-500/10' },
+              { sp: 1,  hours: '30min–4h', label: 'Trivial',   color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' },
+              { sp: 2,  hours: '5–10h',    label: 'Pequeno',   color: 'text-teal-400 border-teal-500/30 bg-teal-500/10' },
+              { sp: 3,  hours: '12–18h',   label: 'Médio',     color: 'text-sky-400 border-sky-500/30 bg-sky-500/10' },
+              { sp: 5,  hours: '24–36h',   label: 'Complexo',  color: 'text-violet-400 border-violet-500/30 bg-violet-500/10' },
+              { sp: 8,  hours: '40–60h',   label: 'Módulo',    color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
+              { sp: 13, hours: '>60h',     label: 'Epic ⚠',   color: 'text-rose-400 border-rose-500/30 bg-rose-500/10' },
             ].map(({ sp, hours, label, color }) => (
               <div key={sp} className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${color}`}>
                 <span className="font-bold text-base">{sp}</span>
