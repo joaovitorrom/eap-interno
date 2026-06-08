@@ -263,7 +263,7 @@ export default function App() {
         onOpenHelp={() => setHelpOpen(true)}
       />
 
-      <div className="flex-1 md:ml-72 flex flex-col">
+      <div className="flex-1 md:ml-72 flex flex-col print:hidden">
         {view === 'dashboard' && (
           <Dashboard
             projects={projects}
@@ -336,6 +336,54 @@ export default function App() {
             onNavigateDashboard={() => handleNavigate('dashboard')}
             onNavigateEditor={() => setView('editor')}
           />
+        )}
+      </div>
+
+      {/* Unified Global Report for Print/PDF */}
+      <div className="hidden print:block w-full">
+        {projectId && (
+          <div className="max-w-5xl mx-auto flex flex-col gap-10">
+            {/* Report Cover / Title block */}
+            <div className="text-center border-b border-outline-variant/40 pb-6 mb-4">
+              <h1 className="text-3xl font-extrabold text-on-surface tracking-tight mb-1">{projectName}</h1>
+              <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Relatório Unificado de Estimativa e Precificação EAP</p>
+              <p className="text-[10px] text-outline mt-1.5">Gerado em: {new Date().toLocaleDateString('pt-BR')}</p>
+            </div>
+
+            {/* Chapter 1: WBS / PERT Review Table */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
+                1. Estrutura Analítica do Projeto (EAP) & Estimativas PERT
+              </h2>
+              <Review
+                projectName={projectName}
+                data={data}
+                bufferPct={bufferPct}
+                onNavigateEditor={() => {}}
+                onExportCSV={() => {}}
+                onExportJSON={() => {}}
+                isExporting={false}
+              />
+            </div>
+
+            {/* Force a clean page break in PDF */}
+            <div style={{ pageBreakBefore: 'always', breakBefore: 'page' }} />
+
+            {/* Chapter 2: Pricing breakdown & details */}
+            <div className="flex flex-col gap-4 pt-4">
+              <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
+                2. Análise Financeira e Precificação Recomendada
+              </h2>
+              <Pricing
+                projectName={projectName}
+                data={data}
+                bufferPct={bufferPct}
+                onBufferChange={setBufferPct}
+                onNavigateDashboard={() => {}}
+                onNavigateEditor={() => {}}
+              />
+            </div>
+          </div>
         )}
       </div>
 

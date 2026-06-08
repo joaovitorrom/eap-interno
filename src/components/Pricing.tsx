@@ -66,8 +66,14 @@ const fmtBRL = (n: number) =>
 export default function Pricing({
   projectName, data, bufferPct, onBufferChange, onNavigateDashboard, onNavigateEditor,
 }: PricingProps) {
-  const [hourlyRate, setHourlyRate] = useState(40);
-  const [rateInput, setRateInput] = useState('40');
+  const [hourlyRate, setHourlyRate] = useState(() => {
+    const saved = localStorage.getItem('pricing_hourly_rate');
+    return saved ? parseFloat(saved) : 40;
+  });
+  const [rateInput, setRateInput] = useState(() => {
+    const saved = localStorage.getItem('pricing_hourly_rate');
+    return saved || '40';
+  });
 
   // Multiplier choices persisted in localStorage
   const [prazoSelect, setPrazoSelect] = useState(() => {
@@ -200,7 +206,11 @@ export default function Pricing({
 
   function applyRate() {
     const n = parseFloat(rateInput.replace(',', '.'));
-    if (!isNaN(n) && n > 0) setHourlyRate(Math.round(n * 100) / 100);
+    if (!isNaN(n) && n > 0) {
+      const val = Math.round(n * 100) / 100;
+      setHourlyRate(val);
+      localStorage.setItem('pricing_hourly_rate', String(val));
+    }
   }
 
   return (
@@ -236,7 +246,7 @@ export default function Pricing({
       <main className="flex-1 px-4 sm:px-8 pt-24 max-w-5xl mx-auto w-full flex flex-col gap-8">
 
         {/* Header */}
-        <header className="flex flex-col gap-2">
+        <header className="flex flex-col gap-2 print:hidden">
           <button
             onClick={onNavigateDashboard}
             className="flex items-center gap-2 text-primary text-xs font-medium uppercase tracking-wider mb-1 cursor-pointer hover:underline text-left w-fit"
@@ -253,7 +263,7 @@ export default function Pricing({
         </header>
 
         {/* ── Hourly Rate Configurator ──────────────────────────────── */}
-        <section className="bg-surface rounded-xl border border-surface-high/60 shadow-lg p-6">
+        <section className="bg-surface rounded-xl border border-surface-high/60 shadow-lg p-6 no-print">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <div className="text-sm font-bold text-on-surface mb-1 flex items-center gap-2">
@@ -294,7 +304,11 @@ export default function Pricing({
             {[10, 20, 30, 40].map((r) => (
               <button
                 key={r}
-                onClick={() => { setRateInput(String(r)); setHourlyRate(r); }}
+                onClick={() => {
+                  setRateInput(String(r));
+                  setHourlyRate(r);
+                  localStorage.setItem('pricing_hourly_rate', String(r));
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all cursor-pointer ${
                   hourlyRate === r
                     ? 'bg-primary text-white border-primary shadow-sm'
@@ -309,7 +323,7 @@ export default function Pricing({
         </section>
 
         {/* ── Pricing Multipliers Configurator ──────────────────────── */}
-        <section className="bg-surface rounded-xl border border-surface-high/60 shadow-lg p-6">
+        <section className="bg-surface rounded-xl border border-surface-high/60 shadow-lg p-6 no-print">
           <div className="flex items-center gap-2.5 mb-4 border-b border-surface-high/40 pb-3">
             <Icon name="tune" className="text-primary" size={22} />
             <div>

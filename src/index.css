@@ -106,6 +106,25 @@ input[type="number"] {
 /* ─── Print ────────────────────────────────── */
 
 @media print {
+  /* Force light theme variables in print for absolute readability */
+  :root, :root.dark, body, body.dark {
+    --color-bg: #ffffff !important;
+    --color-surface: #ffffff !important;
+    --color-surface-high: #f8fafc !important;
+    --color-surface-highest: #f1f5f9 !important;
+    --color-primary: #1d4ed8 !important;
+    --color-primary-container: #dbeafe !important;
+    --color-primary-dim: #1e40af !important;
+    --color-on-surface: #0f172a !important;
+    --color-on-surface-variant: #334155 !important;
+    --color-outline: #64748b !important;
+    --color-outline-variant: #cbd5e1 !important;
+    --color-error: #b91c1c !important;
+    --color-error-container: #fee2e2 !important;
+    --color-success: #15803d !important;
+    --color-warning: #b45309 !important;
+  }
+
   /* Hide interactive chrome */
   .no-print          { display: none !important; }
   aside              { display: none !important; }
@@ -113,33 +132,33 @@ input[type="number"] {
 
   /* Page layout */
   @page {
-    margin: 16mm 12mm;
+    margin: 15mm 12mm;
     size: A4 portrait;
   }
 
   html, body {
     background: #ffffff !important;
     color: #0f172a !important;
-    font-size: 11pt;
+    font-size: 10.5pt;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   body::before { display: none !important; }
 
-  /* Remove sticky bottom bar offset */
-  .pb-28 { padding-bottom: 0 !important; }
+  /* Remove sticky bottom bar offset and all view paddings */
+  .pb-28, .pb-36 { padding-bottom: 0 !important; }
 
   /* Full-width content without sidebar offset */
   .md\:ml-72  { margin-left: 0 !important; }
   .md\:left-72 { left: 0 !important; }
 
   /* Bump top padding since nav is hidden */
-  .pt-24 { padding-top: 1.5rem !important; }
+  .pt-24 { padding-top: 1rem !important; }
 
   /* Keep cards from splitting across pages */
   .print-break   { break-inside: avoid; page-break-inside: avoid; }
-  section        { break-inside: avoid; page-break-inside: avoid; }
+  section, table, tr { break-inside: avoid; page-break-inside: avoid; }
 
   /* Ensure card backgrounds print */
   .bg-surface,

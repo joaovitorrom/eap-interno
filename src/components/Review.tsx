@@ -91,7 +91,7 @@ export default function Review({ projectName, data, bufferPct, onNavigateEditor,
       {/* Content */}
       <main className="flex-1 p-8 pt-24 max-w-6xl mx-auto w-full flex flex-col gap-8">
         {/* Header */}
-        <div>
+        <div className="print:hidden">
           <h1 className="text-4xl font-bold text-on-surface mb-2 tracking-tight">{projectName} — Revisão WBS</h1>
           <p className="text-sm text-on-surface-variant">
             Gerado em: {new Date().toLocaleDateString('pt-BR')} • Revisão 1.0
