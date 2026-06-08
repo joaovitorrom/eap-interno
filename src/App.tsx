@@ -32,6 +32,15 @@ export default function App() {
   const [bufferPct, setBufferPct] = useState(35);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('eap_theme') !== 'light');
   const [helpOpen, setHelpOpen] = useState(false);
+  const [hpd, setHpd] = useState<string>(() => {
+    return localStorage.getItem('converter_hpd') || '2';
+  });
+
+  const handleHpdChange = (val: string) => {
+    setHpd(val);
+    localStorage.setItem('converter_hpd', val);
+  };
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // ─── Theme toggle ────────────────────────────────
@@ -323,6 +332,8 @@ export default function App() {
           <TimeConverter
             onNavigateDashboard={() => handleNavigate('dashboard')}
             initialHours={projectId ? projectTotalHours : undefined}
+            hpd={hpd}
+            onHpdChange={handleHpdChange}
           />
         )}
 
@@ -403,6 +414,8 @@ export default function App() {
               <TimeConverter
                 onNavigateDashboard={() => {}}
                 initialHours={projectTotalHours}
+                hpd={hpd}
+                onHpdChange={handleHpdChange}
               />
             </div>
           </div>

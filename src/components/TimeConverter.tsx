@@ -4,6 +4,8 @@ import Icon from './Icon';
 interface TimeConverterProps {
   onNavigateDashboard: () => void;
   initialHours?: number;
+  hpd: string;
+  onHpdChange: (val: string) => void;
 }
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
@@ -20,7 +22,7 @@ const fmt2 = (n: number): string => {
 const plural = (n: number, sing: string, plur: string) =>
   Math.round(n) === 1 ? sing : plur;
 
-const HOUR_PRESETS = [4, 6, 8, 10];
+const HOUR_PRESETS = [2, 4, 6, 8];
 
 // ─── Result Card ───────────────────────────────────────────────────────────────
 interface ResultCardProps {
@@ -71,15 +73,12 @@ function ResultCard({ icon, label, value, unit, accent = false, sub }: ResultCar
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export default function TimeConverter({ onNavigateDashboard, initialHours }: TimeConverterProps) {
+export default function TimeConverter({ onNavigateDashboard, initialHours, hpd, onHpdChange }: TimeConverterProps) {
   const [hours, setHours] = useState<string>(() => {
     if (initialHours !== undefined) {
       return String(initialHours);
     }
     return localStorage.getItem('converter_manual_hours') || '';
-  });
-  const [hpd, setHpd] = useState<string>(() => {
-    return localStorage.getItem('converter_hpd') || '8';
   });
 
   useEffect(() => {
@@ -93,11 +92,6 @@ export default function TimeConverter({ onNavigateDashboard, initialHours }: Tim
     if (initialHours === undefined) {
       localStorage.setItem('converter_manual_hours', val);
     }
-  };
-
-  const handleHpdChange = (val: string) => {
-    setHpd(val);
-    localStorage.setItem('converter_hpd', val);
   };
 
   const totalHours  = parseFloat(hours) || 0;
@@ -223,7 +217,7 @@ export default function TimeConverter({ onNavigateDashboard, initialHours }: Tim
                   step="0.5"
                   placeholder="Ex: 8"
                   value={hpd}
-                  onChange={(e) => handleHpdChange(e.target.value)}
+                  onChange={(e) => onHpdChange(e.target.value)}
                   className="w-full h-14 pl-11 pr-16 rounded-xl bg-bg border border-outline-variant text-on-surface text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all tabular-nums"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-outline font-medium pointer-events-none">hrs/dia</span>
@@ -234,7 +228,7 @@ export default function TimeConverter({ onNavigateDashboard, initialHours }: Tim
                 {HOUR_PRESETS.map((h) => (
                   <button
                     key={h}
-                    onClick={() => handleHpdChange(String(h))}
+                    onClick={() => onHpdChange(String(h))}
                     className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                       hpd === String(h)
                         ? 'bg-primary text-white border-primary shadow-sm'
