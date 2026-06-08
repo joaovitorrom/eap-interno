@@ -250,6 +250,13 @@ export default function App() {
     return { count };
   }
 
+  const totalPERT = data.reduce(
+    (acc, mod) => acc + mod.items.reduce((s, i) => s + calculatePERT(i.pert.o, i.pert.m, i.pert.p), 0),
+    0,
+  );
+  const bufferHours = Math.round(totalPERT * (bufferPct / 100) * 10) / 10;
+  const projectTotalHours = Math.round((totalPERT + bufferHours) * 10) / 10;
+
   // ─── Render ──────────────────────────────────────
   return (
     <div className="min-h-screen flex">
@@ -315,6 +322,7 @@ export default function App() {
         {view === 'converter' && (
           <TimeConverter
             onNavigateDashboard={() => handleNavigate('dashboard')}
+            initialHours={projectId ? projectTotalHours : undefined}
           />
         )}
 
@@ -341,73 +349,64 @@ export default function App() {
 
       {/* Unified Global Report for Print/PDF */}
       <div className="hidden print:block w-full">
-        {projectId && (() => {
-          const totalPERT = data.reduce(
-            (acc, mod) => acc + mod.items.reduce((s, i) => s + calculatePERT(i.pert.o, i.pert.m, i.pert.p), 0),
-            0,
-          );
-          const bufferHours = Math.round(totalPERT * (bufferPct / 100) * 10) / 10;
-          const projectTotalHours = Math.round((totalPERT + bufferHours) * 10) / 10;
-
-          return (
-            <div className="max-w-5xl mx-auto flex flex-col gap-10">
-              {/* Report Cover / Title block */}
-              <div className="text-center border-b border-outline-variant/40 pb-6 mb-4">
-                <h1 className="text-3xl font-extrabold text-on-surface tracking-tight mb-1">{projectName}</h1>
-                <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Relatório Unificado de Estimativa e Precificação EAP</p>
-                <p className="text-[10px] text-outline mt-1.5">Gerado em: {new Date().toLocaleDateString('pt-BR')}</p>
-              </div>
-
-              {/* Chapter 1: WBS / PERT Review Table */}
-              <div className="flex flex-col gap-4">
-                <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
-                  1. Estrutura Analítica do Projeto (EAP) & Estimativas PERT
-                </h2>
-                <Review
-                  projectName={projectName}
-                  data={data}
-                  bufferPct={bufferPct}
-                  onNavigateEditor={() => {}}
-                  onExportCSV={() => {}}
-                  onExportJSON={() => {}}
-                  isExporting={false}
-                />
-              </div>
-
-              {/* Force a clean page break in PDF */}
-              <div style={{ pageBreakBefore: 'always', breakBefore: 'page' }} />
-
-              {/* Chapter 2: Pricing breakdown & details */}
-              <div className="flex flex-col gap-4 pt-4">
-                <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
-                  2. Análise Financeira e Precificação Recomendada
-                </h2>
-                <Pricing
-                  projectName={projectName}
-                  data={data}
-                  bufferPct={bufferPct}
-                  onBufferChange={setBufferPct}
-                  onNavigateDashboard={() => {}}
-                  onNavigateEditor={() => {}}
-                />
-              </div>
-
-              {/* Force a clean page break in PDF */}
-              <div style={{ pageBreakBefore: 'always', breakBefore: 'page' }} />
-
-              {/* Chapter 3: Time Converter */}
-              <div className="flex flex-col gap-4 pt-4">
-                <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
-                  3. Cronograma Estimado (Conversão de Horas em Prazos)
-                </h2>
-                <TimeConverter
-                  onNavigateDashboard={() => {}}
-                  initialHours={projectTotalHours}
-                />
-              </div>
+        {projectId && (
+          <div className="max-w-5xl mx-auto flex flex-col gap-10">
+            {/* Report Cover / Title block */}
+            <div className="text-center border-b border-outline-variant/40 pb-6 mb-4">
+              <h1 className="text-3xl font-extrabold text-on-surface tracking-tight mb-1">{projectName}</h1>
+              <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Relatório Unificado de Estimativa e Precificação EAP</p>
+              <p className="text-[10px] text-outline mt-1.5">Gerado em: {new Date().toLocaleDateString('pt-BR')}</p>
             </div>
-          );
-        })()}
+
+            {/* Chapter 1: WBS / PERT Review Table */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
+                1. Estrutura Analítica do Projeto (EAP) & Estimativas PERT
+              </h2>
+              <Review
+                projectName={projectName}
+                data={data}
+                bufferPct={bufferPct}
+                onNavigateEditor={() => {}}
+                onExportCSV={() => {}}
+                onExportJSON={() => {}}
+                isExporting={false}
+              />
+            </div>
+
+            {/* Force a clean page break in PDF */}
+            <div style={{ pageBreakBefore: 'always', breakBefore: 'page' }} />
+
+            {/* Chapter 2: Pricing breakdown & details */}
+            <div className="flex flex-col gap-4 pt-4">
+              <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
+                2. Análise Financeira e Precificação Recomendada
+              </h2>
+              <Pricing
+                projectName={projectName}
+                data={data}
+                bufferPct={bufferPct}
+                onBufferChange={setBufferPct}
+                onNavigateDashboard={() => {}}
+                onNavigateEditor={() => {}}
+              />
+            </div>
+
+            {/* Force a clean page break in PDF */}
+            <div style={{ pageBreakBefore: 'always', breakBefore: 'page' }} />
+
+            {/* Chapter 3: Time Converter */}
+            <div className="flex flex-col gap-4 pt-4">
+              <h2 className="text-base font-bold text-primary pb-1 border-b border-primary/20">
+                3. Cronograma Estimado (Conversão de Horas em Prazos)
+              </h2>
+              <TimeConverter
+                onNavigateDashboard={() => {}}
+                initialHours={projectTotalHours}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
