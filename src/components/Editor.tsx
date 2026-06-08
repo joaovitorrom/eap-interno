@@ -472,9 +472,14 @@ export default function Editor({
                     type="number"
                     min={0}
                     max={200}
-                    value={bufferPct}
+                    value={bufferPct === 0 ? '' : bufferPct}
                     onChange={(e) => {
-                      const v = parseInt(e.target.value, 10);
+                      const val = e.target.value;
+                      if (val === '') {
+                        onBufferChange(0);
+                        return;
+                      }
+                      const v = parseInt(val, 10);
                       if (!isNaN(v)) onBufferChange(Math.max(0, Math.min(200, v)));
                     }}
                     className="w-12 text-center text-sm font-bold text-primary bg-primary-container border border-primary/30 rounded focus:outline-none focus:ring-1 focus:ring-primary py-0.5 tabular-nums"
