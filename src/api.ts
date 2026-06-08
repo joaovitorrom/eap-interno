@@ -118,31 +118,87 @@ export function exportAllProjectsJSON(): string {
  *  Retorna o número de projetos importados.
  */
 export function importProjectsJSON(json: string): number {
-  const parsed: unknown = JSON.parse(json);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch (err) {
+    throw new Error('Arquivo JSON inválido.');
+  }
 
-  // Suporta dois formatos:
-  // 1. { version, projects: [...] }  — gerado por exportAllProjectsJSON
-  // 2. Array direto de StoredProject  — compatibilidade futura
-  let incoming: StoredProject[];
+  let incomingRaw: any[];
   if (Array.isArray(parsed)) {
-    incoming = parsed as StoredProject[];
+    incomingRaw = parsed;
   } else if (
     parsed !== null &&
     typeof parsed === 'object' &&
     'projects' in parsed &&
     Array.isArray((parsed as Record<string, unknown>).projects)
   ) {
-    incoming = (parsed as { projects: StoredProject[] }).projects;
+    incomingRaw = (parsed as { projects: any[] }).projects;
+  } else if (
+    parsed !== null &&
+    typeof parsed === 'object' &&
+    (typeof (parsed as any).project === 'string' ||
+      typeof (parsed as any).name === 'string' ||
+      Array.isArray((parsed as any).modules) ||
+      Array.isArray((parsed as any).data))
+  ) {
+    // É um único projeto
+    incomingRaw = [parsed];
   } else {
-    throw new Error('Formato de backup inválido.');
+    throw new Error('Formato de backup ou projeto inválido.');
   }
 
-  // Validação mínima de schema
-  for (const p of incoming) {
-    if (typeof p.id !== 'string' || typeof p.name !== 'string' || !Array.isArray(p.data)) {
-      throw new Error('Arquivo de backup corrompido ou em formato desconhecido.');
+  // Normalização e validação robusta
+  const incoming: StoredProject[] = incomingRaw.map((p: any) => {
+    if (typeof p !== 'object' || p === null) {
+      throw new Error('Formato de projeto inválido no arquivo.');
     }
-  }
+    const name = String(p.name || p.project || 'Projeto Importado');
+    const id = typeof p.id === 'string' && p.id ? p.id : crypto.randomUUID();
+    const created_at = typeof p.created_at === 'string' ? p.created_at : new Date().toISOString();
+    const updated_at = typeof p.updated_at === 'string' ? p.updated_at : new Date().toISOString();
+
+    const rawModules = Array.isArray(p.data) ? p.data : (Array.isArray(p.modules) ? p.modules : []);
+    const data: ProjectModule[] = rawModules.map((m: any) => {
+      if (typeof m !== 'object' || m === null) {
+        return {
+          id: crypto.randomUUID(),
+          title: 'Módulo Inválido',
+          icon: 'extension',
+          items: []
+        };
+      }
+      const mId = typeof m.id === 'string' && m.id ? m.id : crypto.randomUUID();
+      const title = String(m.title || m.label || 'Novo Módulo');
+      const icon = typeof m.icon === 'string' ? m.icon : 'extension';
+      const rawItems = Array.isArray(m.items) ? m.items : [];
+      
+      const items: ModuleItem[] = rawItems.map((i: any) => {
+        if (typeof i !== 'object' || i === null) {
+          return {
+            id: crypto.randomUUID(),
+            label: 'Item Inválido',
+            desc: '',
+            pert: { o: 0, m: 0, p: 0 }
+          };
+        }
+        const iId = typeof i.id === 'string' && i.id ? i.id : crypto.randomUUID();
+        const label = String(i.label || 'Nova Funcionalidade');
+        const desc = String(i.desc || i.description || '');
+        const pertRaw = i.pert || {};
+        const pert: PertValues = {
+          o: Number(pertRaw.o ?? i.o ?? 0),
+          m: Number(pertRaw.m ?? i.m ?? 0),
+          p: Number(pertRaw.p ?? i.p ?? 0),
+        };
+        return { id: iId, label, desc, pert };
+      });
+      return { id: mId, title, icon, items };
+    });
+
+    return { id, name, data, created_at, updated_at };
+  });
 
   const existing = getAll();
   const existingIds = new Set(existing.map(p => p.id));

@@ -69,6 +69,106 @@ export default function Pricing({
   const [hourlyRate, setHourlyRate] = useState(40);
   const [rateInput, setRateInput] = useState('40');
 
+  // Multiplier choices persisted in localStorage
+  const [prazoSelect, setPrazoSelect] = useState(() => {
+    return localStorage.getItem('pricing_prazo_select') || 'normal';
+  });
+  const [complexSelect, setComplexSelect] = useState(() => {
+    return localStorage.getItem('pricing_complex_select') || 'normal';
+  });
+  const [porteSelect, setPorteSelect] = useState(() => {
+    return localStorage.getItem('pricing_porte_select') || 'pf';
+  });
+
+  // Multiplier values persisted in localStorage
+  interface PrazoMults {
+    normal: number;
+    reduzido: number;
+    muito: number;
+    extremamente: number;
+  }
+  const [prazoMultipliers, setPrazoMultipliers] = useState<PrazoMults>(() => {
+    const saved = localStorage.getItem('pricing_prazo_mults');
+    return saved ? JSON.parse(saved) : {
+      normal: 1.00,
+      reduzido: 1.35,
+      muito: 1.86,
+      extremamente: 3.00
+    };
+  });
+
+  interface ComplexMults {
+    normal: number;
+    complexo: number;
+    muito: number;
+  }
+  const [complexMultipliers, setComplexMultipliers] = useState<ComplexMults>(() => {
+    const saved = localStorage.getItem('pricing_complex_mults');
+    return saved ? JSON.parse(saved) : {
+      normal: 1.00,
+      complexo: 1.30,
+      muito: 1.60
+    };
+  });
+
+  interface PorteMults {
+    pf: number;
+    me: number;
+    pequeno: number;
+    medio: number;
+    grande: number;
+  }
+  const [porteMultipliers, setPorteMultipliers] = useState<PorteMults>(() => {
+    const saved = localStorage.getItem('pricing_porte_mults');
+    return saved ? JSON.parse(saved) : {
+      pf: 0.00,
+      me: 0.00,
+      pequeno: 0.00,
+      medio: 0.10,
+      grande: 0.20
+    };
+  });
+
+  // Action helpers to update states and localStorage
+  const updatePrazoSelect = (val: string) => {
+    setPrazoSelect(val);
+    localStorage.setItem('pricing_prazo_select', val);
+  };
+  const updateComplexSelect = (val: string) => {
+    setComplexSelect(val);
+    localStorage.setItem('pricing_complex_select', val);
+  };
+  const updatePorteSelect = (val: string) => {
+    setPorteSelect(val);
+    localStorage.setItem('pricing_porte_select', val);
+  };
+
+  const updatePrazoMult = (key: keyof PrazoMults, val: number) => {
+    const updated = { ...prazoMultipliers, [key]: val };
+    setPrazoMultipliers(updated);
+    localStorage.setItem('pricing_prazo_mults', JSON.stringify(updated));
+  };
+
+  const updateComplexMult = (key: keyof ComplexMults, val: number) => {
+    const updated = { ...complexMultipliers, [key]: val };
+    setComplexMultipliers(updated);
+    localStorage.setItem('pricing_complex_mults', JSON.stringify(updated));
+  };
+
+  const updatePorteMult = (key: keyof PorteMults, val: number) => {
+    const updated = { ...porteMultipliers, [key]: val };
+    setPorteMultipliers(updated);
+    localStorage.setItem('pricing_porte_mults', JSON.stringify(updated));
+  };
+
+  const currentPrazoMult = prazoMultipliers[prazoSelect as keyof PrazoMults] ?? 1.0;
+  const currentComplexMult = complexMultipliers[complexSelect as keyof ComplexMults] ?? 1.0;
+  const currentPorteMult = porteMultipliers[porteSelect as keyof PorteMults] ?? 0.0;
+
+  // Combining the multipliers
+  // Prazo * Complexidade * (1 + Porte)
+  const multiplierFactor = currentPrazoMult * currentComplexMult * (1 + currentPorteMult);
+
   // Compute totals from PERT hours
   const totalPERT = data.reduce(
     (acc, mod) => acc + mod.items.reduce((s, i) => s + calculatePERT(i.pert.o, i.pert.m, i.pert.p), 0),
@@ -76,22 +176,24 @@ export default function Pricing({
   );
   const buffer     = Math.round(totalPERT * (bufferPct / 100) * 10) / 10;
   const totalHours  = Math.round((totalPERT + buffer) * 10) / 10;
-  const totalPrice  = Math.round(totalHours * hourlyRate * 100) / 100;
-  const minPrice    = Math.round(totalPERT * hourlyRate * 100) / 100;
+  
+  const basePrice   = Math.round(totalHours * hourlyRate * 100) / 100;
+  const totalPrice  = Math.round(basePrice * multiplierFactor * 100) / 100;
+  const minPrice    = Math.round(totalPERT * hourlyRate * multiplierFactor * 100) / 100;
 
   // Per-module breakdown
   const modules = data.map((mod) => {
     const items = mod.items.map((item) => {
       const expected = calculatePERT(item.pert.o, item.pert.m, item.pert.p);
       const sp = hoursToSP(expected);
-      const itemMinPrice = Math.round(expected * hourlyRate * 100) / 100;
-      const itemMaxPrice = Math.round(expected * 1.35 * hourlyRate * 100) / 100;
+      const itemMinPrice = Math.round(expected * hourlyRate * multiplierFactor * 100) / 100;
+      const itemMaxPrice = Math.round(expected * 1.35 * hourlyRate * multiplierFactor * 100) / 100;
       return { ...item, expected, sp, itemMinPrice, itemMaxPrice };
     });
     const modHours     = items.reduce((s, i) => s + i.expected, 0);
     const modBuf       = Math.round(modHours * (bufferPct / 100) * 10) / 10;
     const modTotal     = Math.round((modHours + modBuf) * 10) / 10;
-    const modPrice     = Math.round(modTotal * hourlyRate * 100) / 100;
+    const modPrice     = Math.round(modTotal * hourlyRate * multiplierFactor * 100) / 100;
     const modSP        = items.reduce((s, i) => s + i.sp, 0);
     return { ...mod, items, modHours, modBuf, modTotal, modPrice, modSP };
   });
@@ -146,7 +248,7 @@ export default function Pricing({
             {projectName} <span className="text-primary">— Precificação</span>
           </h1>
           <p className="text-sm text-on-surface-variant">
-            Baseado nas horas estimadas (PERT + buffer 35%) e no valor/hora configurável
+            Baseado nas horas estimadas (PERT + buffer) e nos multiplicadores de prazo, complexidade e tipo de cliente.
           </p>
         </header>
 
@@ -206,6 +308,211 @@ export default function Pricing({
           </div>
         </section>
 
+        {/* ── Pricing Multipliers Configurator ──────────────────────── */}
+        <section className="bg-surface rounded-xl border border-surface-high/60 shadow-lg p-6">
+          <div className="flex items-center gap-2.5 mb-4 border-b border-surface-high/40 pb-3">
+            <Icon name="tune" className="text-primary" size={22} />
+            <div>
+              <h2 className="text-base font-bold text-on-surface">Multiplicadores de Precificação</h2>
+              <p className="text-xs text-on-surface-variant">Selecione o cenário do projeto e personalize os valores dos fatores se necessário.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Prazo */}
+            <div className="flex flex-col gap-3">
+              <label className="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+                <Icon name="schedule" size={16} className="text-primary" />
+                Prazo de Entrega
+              </label>
+              <select
+                value={prazoSelect}
+                onChange={(e) => updatePrazoSelect(e.target.value)}
+                className="w-full p-2.5 bg-bg border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                <option value="normal">Normal (100% prazo)</option>
+                <option value="reduzido">Reduzido (85% prazo)</option>
+                <option value="muito">Muito Reduzido (70% prazo)</option>
+                <option value="extremamente">Extremamente Reduzido (50% prazo)</option>
+              </select>
+
+              <div className="space-y-2 mt-1.5 p-3 bg-surface-high/15 rounded-lg text-xs border border-outline-variant/30">
+                <span className="font-semibold text-on-surface-variant block mb-1">Ajustar Fatores (Prazo):</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Normal (100%)</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={prazoMultipliers.normal}
+                      onChange={(e) => updatePrazoMult('normal', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Reduzido (85%)</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={prazoMultipliers.reduzido}
+                      onChange={(e) => updatePrazoMult('reduzido', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Muito Red. (70%)</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={prazoMultipliers.muito}
+                      onChange={(e) => updatePrazoMult('muito', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Extr. Red. (50%)</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={prazoMultipliers.extremamente}
+                      onChange={(e) => updatePrazoMult('extremamente', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Complexidade */}
+            <div className="flex flex-col gap-3">
+              <label className="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+                <Icon name="psychology" size={16} className="text-primary" />
+                Complexidade
+              </label>
+              <select
+                value={complexSelect}
+                onChange={(e) => updateComplexSelect(e.target.value)}
+                className="w-full p-2.5 bg-bg border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                <option value="normal">Normal</option>
+                <option value="complexo">Complexo</option>
+                <option value="muito">Muito complexo</option>
+              </select>
+
+              <div className="space-y-2 mt-1.5 p-3 bg-surface-high/15 rounded-lg text-xs border border-outline-variant/30">
+                <span className="font-semibold text-on-surface-variant block mb-1">Ajustar Fatores (Complexidade):</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Normal</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={complexMultipliers.normal}
+                      onChange={(e) => updateComplexMult('normal', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Complexo</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={complexMultipliers.complexo}
+                      onChange={(e) => updateComplexMult('complexo', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Muito C.</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={complexMultipliers.muito}
+                      onChange={(e) => updateComplexMult('muito', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Porte do Cliente */}
+            <div className="flex flex-col gap-3">
+              <label className="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+                <Icon name="business" size={16} className="text-primary" />
+                Porte do Cliente
+              </label>
+              <select
+                value={porteSelect}
+                onChange={(e) => updatePorteSelect(e.target.value)}
+                className="w-full p-2.5 bg-bg border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                <option value="pf">Pessoa Física</option>
+                <option value="me">Microeempreendor</option>
+                <option value="pequeno">Pequeno Porte</option>
+                <option value="medio">Médio Porte</option>
+                <option value="grande">Grande Porte</option>
+              </select>
+
+              <div className="space-y-2 mt-1.5 p-3 bg-surface-high/15 rounded-lg text-xs border border-outline-variant/30">
+                <span className="font-semibold text-on-surface-variant block mb-1">Ajustar Fatores (Porte):</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">PF</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={porteMultipliers.pf}
+                      onChange={(e) => updatePorteMult('pf', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Micro</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={porteMultipliers.me}
+                      onChange={(e) => updatePorteMult('me', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Pequeno</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={porteMultipliers.pequeno}
+                      onChange={(e) => updatePorteMult('pequeno', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[9px] text-outline uppercase font-medium">Médio (+10%)</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={porteMultipliers.medio}
+                      onChange={(e) => updatePorteMult('medio', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 col-span-2">
+                    <span className="text-[9px] text-outline uppercase font-medium">Grande (+20%)</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={porteMultipliers.grande}
+                      onChange={(e) => updatePorteMult('grande', parseFloat(e.target.value) || 0)}
+                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── Summary Cards ─────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Net hours */}
@@ -257,7 +564,7 @@ export default function Pricing({
             <div className="text-4xl sm:text-5xl font-bold text-on-surface tabular-nums">
               {fmtBRL(minPrice)}
             </div>
-            <div className="text-on-surface-variant text-sm mt-1">Mínimo (sem buffer)</div>
+            <div className="text-on-surface-variant text-sm mt-1">Mínimo (sem buffer, com multiplicadores)</div>
           </div>
           <div className="text-4xl text-on-surface-variant font-light hidden sm:block">—</div>
           <div className="text-right">
@@ -265,7 +572,12 @@ export default function Pricing({
             <div className="text-4xl sm:text-5xl font-bold text-primary tabular-nums">
               {fmtBRL(totalPrice)}
             </div>
-            <div className="text-primary/60 text-sm mt-1">Com buffer de 35% ({fmt(totalHours)}h × {fmtBRL(hourlyRate)})</div>
+            <div className="text-primary/60 text-xs mt-1 block">
+              Com buffer e multiplicadores ({fmt(totalHours)}h × {fmtBRL(hourlyRate)} × {fmt(multiplierFactor)})
+            </div>
+            <div className="text-[10px] text-primary/80 mt-1 font-semibold uppercase tracking-wider">
+              Cenário: Prazo (x{fmt(currentPrazoMult)}) • Complexidade (x{fmt(currentComplexMult)}) • Cliente (+{fmt(currentPorteMult * 100)}%)
+            </div>
           </div>
         </div>
 
@@ -360,8 +672,8 @@ export default function Pricing({
               <Icon name="table_chart" size={18} className="text-primary" />
             </div>
             <div>
-              <div className="font-bold text-on-surface text-sm">Tabela de Referência (Valor/hora atual: {fmtBRL(hourlyRate)})</div>
-              <div className="text-xs text-on-surface-variant">Faixas de preço calculadas com base no valor/hora configurado</div>
+              <div className="font-bold text-on-surface text-sm">Tabela de Referência (Valor/hora atual: {fmtBRL(hourlyRate)} c/ multiplicadores)</div>
+              <div className="text-xs text-on-surface-variant">Faixas de preço com multiplicadores aplicados (fator atual: x{fmt(multiplierFactor)})</div>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -378,8 +690,8 @@ export default function Pricing({
               <tbody>
                 {SP_TABLE.map((row, idx) => {
                   const colors = SP_COLORS[row.sp];
-                  const dynMin = row.isEpic ? null : Math.round(row.effortMin * hourlyRate);
-                  const dynMax = row.isEpic ? null : Math.round(row.effortMax * hourlyRate);
+                  const dynMin = row.isEpic ? null : Math.round(row.effortMin * hourlyRate * multiplierFactor);
+                  const dynMax = row.isEpic ? null : Math.round(row.effortMax * hourlyRate * multiplierFactor);
                   const effortDisplay = row.isEpic
                     ? <span className="text-rose-400">—</span>
                     : row.effortLabel
