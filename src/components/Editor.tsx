@@ -21,7 +21,7 @@ interface EditorProps {
   onNavigateReview: () => void;
   onNavigateDashboard: () => void;
   onExportCSV: () => void;
-  onCopyJSON: () => void;
+  onExportJSON: () => void;
   isExporting: boolean;
 }
 
@@ -147,7 +147,7 @@ export default function Editor({
   projectName, data, saving, saveMsg, bufferPct, onBufferChange,
   onProjectNameChange, onSave, onAddModule, onRemoveModule,
   onUpdateModuleTitle, onUpdateModuleIcon, onAddItem, onRemoveItem, onUpdateItem,
-  onNavigateReview, onNavigateDashboard, onExportCSV, onCopyJSON, isExporting,
+  onNavigateReview, onNavigateDashboard, onExportCSV, onExportJSON, isExporting,
 }: EditorProps) {
   const [openIconSelector, setOpenIconSelector] = useState<string | null>(null);
 
@@ -171,7 +171,7 @@ export default function Editor({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={onCopyJSON} className="p-2 hover:bg-surface rounded-full transition-all cursor-pointer text-on-surface-variant hover:text-primary" title="Copiar JSON">
+          <button onClick={onExportJSON} className="p-2 hover:bg-surface rounded-full transition-all cursor-pointer text-on-surface-variant hover:text-primary" title="Baixar JSON">
             <Icon name={isExporting ? 'check' : 'data_object'} size={20} />
           </button>
           <button onClick={onExportCSV} className="p-2 hover:bg-surface rounded-full transition-all cursor-pointer text-on-surface-variant hover:text-primary" title="Exportar CSV">

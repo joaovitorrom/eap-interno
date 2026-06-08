@@ -169,9 +169,18 @@ export default function App() {
   }
 
   // ─── Export ──────────────────────────────────────
-  function handleCopyJSON() {
+  function handleExportJSON() {
     const payload = { project: projectName, modules: data };
-    navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${projectName.replace(/\s+/g, '_')}_EAP.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     setIsExporting(true);
     setTimeout(() => setIsExporting(false), 2000);
   }
@@ -286,7 +295,7 @@ export default function App() {
             onNavigateReview={() => setView('review')}
             onNavigateDashboard={() => handleNavigate('dashboard')}
             onExportCSV={handleExportCSV}
-            onCopyJSON={handleCopyJSON}
+            onExportJSON={handleExportJSON}
             isExporting={isExporting}
           />
         )}
@@ -298,7 +307,7 @@ export default function App() {
             bufferPct={bufferPct}
             onNavigateEditor={() => setView('editor')}
             onExportCSV={handleExportCSV}
-            onCopyJSON={handleCopyJSON}
+            onExportJSON={handleExportJSON}
             isExporting={isExporting}
           />
         )}

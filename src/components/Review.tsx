@@ -7,7 +7,7 @@ interface ReviewProps {
   bufferPct: number;
   onNavigateEditor: () => void;
   onExportCSV: () => void;
-  onCopyJSON: () => void;
+  onExportJSON: () => void;
   isExporting: boolean;
 }
 
@@ -28,7 +28,7 @@ const calculateVariance = (o: number, p: number) => {
   return isNaN(v) ? 0 : Math.round(v * 100) / 100;
 };
 
-export default function Review({ projectName, data, bufferPct, onNavigateEditor, onExportCSV, onCopyJSON, isExporting }: ReviewProps) {
+export default function Review({ projectName, data, bufferPct, onNavigateEditor, onExportCSV, onExportJSON, isExporting }: ReviewProps) {
   // Flatten data for WBS table
   type WBSRow = { isModule: boolean; wbsId: string; label: string; o: number; m: number; p: number; expected: number; variance: number };
   const rows: WBSRow[] = [];
@@ -77,9 +77,9 @@ export default function Review({ projectName, data, bufferPct, onNavigateEditor,
             <Icon name="download" size={16} />
             Download CSV
           </button>
-          <button onClick={onCopyJSON} className="flex items-center gap-1.5 bg-surface text-on-surface-variant px-3 py-2 rounded-lg text-xs font-medium hover:bg-surface-high transition-all border border-outline-variant/50 cursor-pointer">
+          <button onClick={onExportJSON} className="flex items-center gap-1.5 bg-surface text-on-surface-variant px-3 py-2 rounded-lg text-xs font-medium hover:bg-surface-high transition-all border border-outline-variant/50 cursor-pointer">
             <Icon name={isExporting ? 'check' : 'data_object'} size={16} />
-            Exportar JSON
+            Baixar JSON
           </button>
           <button onClick={() => window.print()} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-primary-dim transition-all shadow-sm cursor-pointer">
             <Icon name="print" size={16} />
