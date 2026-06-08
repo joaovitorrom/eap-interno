@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from './Icon';
 
 interface TimeConverterProps {
   onNavigateDashboard: () => void;
+  initialHours?: number;
 }
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
@@ -70,9 +71,15 @@ function ResultCard({ icon, label, value, unit, accent = false, sub }: ResultCar
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export default function TimeConverter({ onNavigateDashboard }: TimeConverterProps) {
-  const [hours, setHours] = useState<string>('');
+export default function TimeConverter({ onNavigateDashboard, initialHours }: TimeConverterProps) {
+  const [hours, setHours] = useState<string>(initialHours ? String(initialHours) : '');
   const [hpd, setHpd]     = useState<string>('8');
+
+  useEffect(() => {
+    if (initialHours !== undefined) {
+      setHours(String(initialHours));
+    }
+  }, [initialHours]);
 
   const totalHours  = parseFloat(hours) || 0;
   const hoursPerDay = parseFloat(hpd)   || 8;
@@ -136,7 +143,7 @@ export default function TimeConverter({ onNavigateDashboard }: TimeConverterProp
       <main className="flex-1 px-4 sm:px-8 pt-24 pb-10 max-w-3xl mx-auto w-full flex flex-col gap-8">
 
         {/* Page header */}
-        <header className="flex flex-col gap-2">
+        <header className="flex flex-col gap-2 print:hidden">
           <button
             onClick={onNavigateDashboard}
             className="flex items-center gap-2 text-primary text-xs font-medium uppercase tracking-wider mb-1 cursor-pointer hover:underline text-left w-fit no-print"
@@ -154,7 +161,7 @@ export default function TimeConverter({ onNavigateDashboard }: TimeConverterProp
         </header>
 
         {/* ── Input card ──────────────────────────────────────────────── */}
-        <div className="bg-surface rounded-2xl border border-surface-high/60 shadow-lg p-5 sm:p-8 flex flex-col gap-6">
+        <div className="bg-surface rounded-2xl border border-surface-high/60 shadow-lg p-5 sm:p-8 flex flex-col gap-6 no-print">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
             {/* Total hours */}
