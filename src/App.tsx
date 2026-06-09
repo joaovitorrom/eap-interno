@@ -8,7 +8,7 @@ import PlanningPoker from './components/PlanningPoker';
 import Pricing from './components/Pricing';
 import HelpModal from './components/HelpModal';
 import {
-  fetchProjects, fetchProjectData, createProject, saveProject, deleteProject,
+  fetchProjects, fetchProjectData, createProject, saveProject, deleteProject, copyProject,
   exportAllProjectsJSON, importProjectsJSON,
   type Project, type ProjectModule,
 } from './api';
@@ -99,6 +99,11 @@ export default function App() {
 
   async function handleDeleteProject(id: string) {
     await deleteProject(id);
+    await loadProjects();
+  }
+
+  async function handleCopyProject(id: string) {
+    await copyProject(id);
     await loadProjects();
   }
 
@@ -286,6 +291,7 @@ export default function App() {
             onOpenProject={handleOpenProject}
             onNewProject={handleNewProject}
             onDeleteProject={handleDeleteProject}
+            onCopyProject={handleCopyProject}
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
           />

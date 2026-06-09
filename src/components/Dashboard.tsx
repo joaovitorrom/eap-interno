@@ -7,6 +7,7 @@ interface DashboardProps {
   onOpenProject: (id: string) => void;
   onNewProject: () => void;
   onDeleteProject: (id: string) => void;
+  onCopyProject: (id: string) => void;
   onExportBackup: () => void;
   onImportBackup: (file: File) => Promise<{ count: number }>;
 }
@@ -24,7 +25,7 @@ function timeAgo(dateStr?: string): string {
   return new Date(dateStr).toLocaleDateString('pt-BR');
 }
 
-export default function Dashboard({ projects, onOpenProject, onNewProject, onDeleteProject, onExportBackup, onImportBackup }: DashboardProps) {
+export default function Dashboard({ projects, onOpenProject, onNewProject, onDeleteProject, onCopyProject, onExportBackup, onImportBackup }: DashboardProps) {
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +33,15 @@ export default function Dashboard({ projects, onOpenProject, onNewProject, onDel
   function showToast(type: 'success' | 'error', msg: string) {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 4000);
+  }
+
+  async function handleCopy(id: string) {
+    try {
+      await onCopyProject(id);
+      showToast('success', 'Projeto copiado com sucesso!');
+    } catch {
+      showToast('error', 'Erro ao copiar projeto.');
+    }
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -183,16 +193,32 @@ export default function Dashboard({ projects, onOpenProject, onNewProject, onDel
                     <span className="text-xs text-primary font-bold">{project.total_hours || 0} hrs</span>
                   </div>
                 </div>
-                <button
-                  onClick={(e) => { 
-                    e.preventDefault();
-                    e.stopPropagation(); 
-                    onDeleteProject(project.id); 
-                  }}
-                  className="p-2 text-outline-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-error/10 cursor-pointer"
-                >
-                  <Icon name="delete" size={18} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => { 
+                      e.preventDefault();
+                      e.stopPropagation(); 
+                      void handleCopy(project.id); 
+                    }}
+                    title="Copiar projeto"
+                    className="p-2 text-outline-variant hover:text-primary opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-primary/10 cursor-pointer"
+                  >
+                    <Icon name="content_copy" size={18} />
+                  </button>
+                  <button
+                    onClick={(e) => { 
+                      e.preventDefault();
+                      e.stopPropagation(); 
+                      if (confirm('Tem certeza de que deseja excluir este projeto?')) {
+                        onDeleteProject(project.id); 
+                      }
+                    }}
+                    title="Excluir projeto"
+                    className="p-2 text-outline-variant hover:text-error opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-error/10 cursor-pointer"
+                  >
+                    <Icon name="delete" size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -105,6 +105,54 @@ export async function deleteProject(id: string): Promise<void> {
   saveAll(all.filter(p => p.id !== id));
 }
 
+export async function copyProject(id: string): Promise<Project> {
+  const all = getAll();
+  const project = all.find(p => p.id === id);
+  if (!project) throw new Error('Projeto não encontrado');
+
+  const newId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  // Clone modules and items with fresh UUIDs
+  const clonedData: ProjectModule[] = project.data.map(mod => ({
+    ...mod,
+    id: crypto.randomUUID(),
+    items: mod.items.map(item => ({
+      ...item,
+      id: crypto.randomUUID(),
+    }))
+  }));
+
+  const newName = `${project.name} (Cópia)`;
+  const clonedProject: StoredProject = {
+    id: newId,
+    name: newName,
+    data: clonedData,
+    created_at: now,
+    updated_at: now,
+  };
+
+  all.push(clonedProject);
+  saveAll(all);
+
+  let total = 0;
+  clonedData.forEach(mod => {
+    mod.items.forEach(item => {
+      total += calculatePERT(item.pert.o, item.pert.m, item.pert.p);
+    });
+  });
+  const buffer = Math.round(total * 0.35 * 10) / 10;
+  const finalHours = Math.round((total + buffer) * 10) / 10;
+
+  return {
+    id: newId,
+    name: newName,
+    total_hours: finalHours,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
 // ─── Backup / Restore ────────────────────────────────
 
 /** Serializa todos os projetos para uma string JSON (download de backup) */
