@@ -660,7 +660,7 @@ export default function Pricing({
         </div>
 
         {/* ── Per-Module Breakdown ──────────────────────────────────── */}
-        <section className="bg-surface rounded-xl border border-surface-high/60 shadow-lg overflow-hidden">
+        <section className="no-print bg-surface rounded-xl border border-surface-high/60 shadow-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-surface-high/40 flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
               <Icon name="account_tree" size={18} className="text-primary" />
@@ -747,7 +747,7 @@ export default function Pricing({
         </section>
 
         {/* ── Fibonacci Reference ───────────────────────────────────── */}
-        <section className="bg-surface rounded-xl border border-surface-high/60 shadow-lg overflow-hidden">
+        <section className="no-print bg-surface rounded-xl border border-surface-high/60 shadow-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-surface-high/40 flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
               <Icon name="table_chart" size={18} className="text-primary" />

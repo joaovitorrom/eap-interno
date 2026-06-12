@@ -130,7 +130,7 @@ export default function TimeConverter({ onNavigateDashboard, initialHours, hpd, 
   const breakdown = parts.length ? parts.join(', ') : '0 dias';
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen pb-20">
+    <div className="flex-1 flex flex-col pb-20">
 
       {/* ── Top Nav ─────────────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 md:left-72 right-0 h-16 z-40 flex justify-between items-center px-4 sm:px-8 bg-bg/80 backdrop-blur-md border-b border-outline-variant shadow-sm no-print">
@@ -152,8 +152,44 @@ export default function TimeConverter({ onNavigateDashboard, initialHours, hpd, 
         </button>
       </nav>
 
-      {/* ── Content ─────────────────────────────────────────────────── */}
-      <main className="flex-1 px-4 sm:px-8 pt-24 pb-10 max-w-3xl mx-auto w-full flex flex-col gap-8">
+      {/* ── Print-only block ───────────────────────────────────────── */}
+      {hasResult && (
+        <div className="hidden print:block" style={{ fontFamily: 'system-ui, sans-serif', color: '#0f172a', padding: '0 0 16px 0' }}>
+          {/* Cards row */}
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+            {[
+              { label: 'Dias Úteis',  value: fmt1(days),   unit: plural(days,  'dia',     'dias'),     sub: `${fmt1(hoursPerDay)} hrs/dia` },
+              { label: 'Semanas',     value: fmt2(weeks),  unit: plural(weeks, 'semana',  'semanas'),  sub: '5 dias/semana' },
+              { label: 'Meses',       value: fmt2(months), unit: plural(months,'mês',     'meses'),    sub: '4 semanas/mês' },
+              { label: 'Anos',        value: fmt2(years),  unit: plural(years, 'ano',     'anos'),     sub: '12 meses/ano', accent: true },
+            ].map((c, i) => (
+              <div key={i} style={{
+                flex: 1,
+                border: c.accent ? '2px solid #1d4ed8' : '1px solid #cbd5e1',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                background: c.accent ? '#eff6ff' : '#f8fafc',
+              }}>
+                <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>{c.label}</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: c.accent ? '#1d4ed8' : '#0f172a', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>
+                  {c.value} <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748b' }}>{c.unit}</span>
+                </div>
+                <div style={{ fontSize: '9px', color: '#94a3b8', marginTop: '3px' }}>{c.sub}</div>
+              </div>
+            ))}
+          </div>
+          {/* Summary sentence */}
+          <div style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', fontSize: '11px', color: '#334155' }}>
+            <strong style={{ color: '#1d4ed8' }}>{fmt1(totalHours)} horas</strong> equivalem a aproximadamente{' '}
+            <strong>{breakdown}</strong> de trabalho, considerando uma jornada de{' '}
+            <strong style={{ color: '#1d4ed8' }}>{fmt1(hoursPerDay)} horas/dia</strong>
+            {' '}(5 dias úteis/semana · 4 semanas/mês · 12 meses/ano).
+          </div>
+        </div>
+      )}
+
+      {/* ── Content (screen only) ───────────────────────────────────── */}
+      <main className="no-print flex-1 px-4 sm:px-8 pt-24 pb-10 max-w-3xl mx-auto w-full flex flex-col gap-8">
 
         {/* Page header */}
         <header className="flex flex-col gap-2 print:hidden">
