@@ -215,22 +215,27 @@ export default function Pricing({
 
   const basePrice   = Math.round(totalHours * hourlyRate * 100) / 100;
   const totalPrice  = Math.round(basePrice * multiplierFactor * 100) / 100;
-  const minPrice    = Math.round(totalPERT * hourlyRate * multiplierFactor * 100) / 100;
+  // Preço mínimo = horas PERT brutas × valor/hora (sem buffer de horas, sem multiplicadores)
+  // Assim representa o custo base real antes de qualquer margem.
+  const minPrice    = Math.round(totalPERT * hourlyRate * 100) / 100;
 
   // Per-module breakdown
   const modules = data.map((mod) => {
     const items = mod.items.map((item) => {
       const expected = calculatePERT(item.pert.o, item.pert.m, item.pert.p);
       const sp = hoursToSP(expected);
-      const itemMinPrice = Math.round(expected * hourlyRate * multiplierFactor * 100) / 100;
-      const itemMaxPrice = Math.round(expected * 1.35 * hourlyRate * multiplierFactor * 100) / 100;
+      // Min: custo base puro sem nenhuma margem
+      const itemMinPrice = Math.round(expected * hourlyRate * 100) / 100;
+      // Max: com buffer de horas (usa bufferPct configurado, não 1.35 fixo)
+      const itemMaxPrice = Math.round(expected * (1 + bufferPct / 100) * hourlyRate * multiplierFactor * 100) / 100;
       return { ...item, expected, sp, itemMinPrice, itemMaxPrice };
     });
     const modHours     = items.reduce((s, i) => s + i.expected, 0);
     const modBuf       = Math.round(modHours * (bufferPct / 100) * 10) / 10;
     const modTotal     = Math.round((modHours + modBuf) * 10) / 10;
     const modPrice     = Math.round(modTotal * hourlyRate * multiplierFactor * 100) / 100;
-    const modMinPrice  = Math.round(modHours * hourlyRate * multiplierFactor * 100) / 100;
+    // modMinPrice: custo base do módulo sem buffer e sem multiplicadores
+    const modMinPrice  = Math.round(modHours * hourlyRate * 100) / 100;
     const modSP        = items.reduce((s, i) => s + i.sp, 0);
     return { ...mod, items, modHours, modBuf, modTotal, modPrice, modMinPrice, modSP };
   });
@@ -311,7 +316,7 @@ export default function Pricing({
             {[
               { label:'Horas Líquidas (PERT)', value: `${fmt(totalPERT)}h`, sub:'sem buffer', color:'#0f172a' },
               { label:`Total c/ Buffer (${bufferPct}%)`, value: `${fmt(totalHours)}h`, sub:`+${fmt(buffer)}h`, color:'#0f172a' },
-              { label:'Preço Mínimo', value: fmtBRL(minPrice), sub:'sem buffer, c/ mult.', color:'#0f172a' },
+              { label:'Preço Mínimo', value: fmtBRL(minPrice), sub:'sem buffer, sem mult.', color:'#0f172a' },
               { label:'Valor Total Recomendado', value: fmtBRL(totalPrice), sub:`c/ buffer e multiplicadores`, color:'#1d4ed8', big: true },
             ].map((c, i) => (
               <div key={i} style={{ flex: c.big ? 1.4 : 1, padding:'12px 14px', borderLeft: i > 0 ? '1px solid #bfdbfe' : 'none', background: c.big ? '#eff6ff' : '#fff', textAlign: c.big ? 'right' : 'left' }}>
@@ -355,7 +360,7 @@ export default function Pricing({
           </table>
 
           <div style={{ fontSize:'8px', color:'#94a3b8', marginBottom:'8px' }}>
-            Fórmula: Horas c/ buffer × R$ {fmt(hourlyRate)}/h × fator {fmt(multiplierFactor)} (prazo ×{fmt(currentPrazoMult)} · complexidade ×{fmt(currentComplexMult)} · porte +{fmt(currentPorteMult * 100)}%)
+            Fórmula Total: Horas c/ buffer ({fmt(totalHours)}h) × R$ {fmt(hourlyRate)}/h × fator {fmt(multiplierFactor)} (prazo ×{fmt(currentPrazoMult)} · complexidade ×{fmt(currentComplexMult)} · porte +{fmt(currentPorteMult * 100)}%) | Mínimo: {fmt(totalPERT)}h × R$ {fmt(hourlyRate)}/h (sem buffer, sem mult.)
           </div>
         </div>
 
@@ -637,7 +642,7 @@ export default function Pricing({
             <div className="text-4xl sm:text-5xl font-bold text-on-surface tabular-nums">
               {fmtBRL(minPrice)}
             </div>
-            <div className="text-on-surface-variant text-sm mt-1">Mínimo (sem buffer, com multiplicadores)</div>
+            <div className="text-on-surface-variant text-sm mt-1">Mínimo (sem buffer, sem multiplicadores)</div>
           </div>
           <div className="text-4xl text-on-surface-variant font-light hidden sm:block">—</div>
           <div className="text-right">
