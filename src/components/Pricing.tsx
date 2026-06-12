@@ -277,95 +277,86 @@ export default function Pricing({
       <main className="flex-1 px-4 sm:px-8 pt-24 max-w-5xl mx-auto w-full flex flex-col gap-8">
 
         {/* ── PDF-only Header ─────────────────────────────────────────── */}
-        <div className="hidden print:block mb-2">
-          <div className="flex items-center justify-between border-b-2 border-primary pb-3 mb-5">
+        <div className="hidden print:block">
+          {/* Title bar */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', borderBottom:'2px solid #1d4ed8', paddingBottom:'10px', marginBottom:'18px' }}>
             <div>
-              <h1 className="text-2xl font-bold text-on-surface">{projectName}</h1>
-              <p className="text-sm text-on-surface-variant mt-0.5">Proposta de Precificação — EAP Architect</p>
+              <div style={{ fontSize:'20px', fontWeight:800, color:'#0f172a', lineHeight:1.2 }}>{projectName}</div>
+              <div style={{ fontSize:'11px', color:'#475569', marginTop:'2px' }}>Proposta de Precificação — EAP Architect</div>
             </div>
-            <div className="text-right text-xs text-on-surface-variant">
-              <div>Gerado em {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+            <div style={{ fontSize:'10px', color:'#475569', textAlign:'right' }}>
+              Gerado em {new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' })}
             </div>
           </div>
 
-          {/* Multiplier summary for PDF */}
-          <div className="grid grid-cols-4 gap-4 mb-5 text-xs">
-            <div className="border border-outline-variant rounded-lg p-3">
-              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Valor / Hora</div>
-              <div className="text-lg font-bold text-on-surface">{fmtBRL(hourlyRate)}</div>
-            </div>
-            <div className="border border-outline-variant rounded-lg p-3">
-              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Prazo</div>
-              <div className="font-semibold text-on-surface">
-                {prazoSelect === 'normal' ? 'Normal' : prazoSelect === 'reduzido' ? 'Reduzido' : prazoSelect === 'muito' ? 'Muito Reduzido' : 'Extr. Reduzido'}
+          {/* Multiplier config row */}
+          <div style={{ display:'flex', gap:'10px', marginBottom:'16px' }}>
+            {[
+              { label:'Valor / Hora', value: fmtBRL(hourlyRate), sub: '' },
+              { label:'Prazo', value: prazoSelect === 'normal' ? 'Normal' : prazoSelect === 'reduzido' ? 'Reduzido' : prazoSelect === 'muito' ? 'Muito Reduzido' : 'Extr. Reduzido', sub: `×${fmt(currentPrazoMult)}` },
+              { label:'Complexidade', value: complexSelect === 'normal' ? 'Normal' : complexSelect === 'complexo' ? 'Complexo' : 'Muito Complexo', sub: `×${fmt(currentComplexMult)}` },
+              { label:'Porte do Cliente', value: porteSelect === 'pf' ? 'Pessoa Física' : porteSelect === 'me' ? 'Microemp.' : porteSelect === 'pequeno' ? 'Pequeno' : porteSelect === 'medio' ? 'Médio' : 'Grande', sub: `+${fmt(currentPorteMult * 100)}%` },
+              { label:'Fator Total', value: `×${fmt(multiplierFactor)}`, sub: `Buffer: ${bufferPct}%`, highlight: true },
+            ].map((c, i) => (
+              <div key={i} style={{ flex:1, border:'1px solid #cbd5e1', borderRadius:'8px', padding:'8px 10px', background: c.highlight ? '#dbeafe' : '#f8fafc' }}>
+                <div style={{ fontSize:'8px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'3px' }}>{c.label}</div>
+                <div style={{ fontSize: c.highlight ? '14px' : '12px', fontWeight:700, color: c.highlight ? '#1d4ed8' : '#0f172a' }}>{c.value}</div>
+                {c.sub && <div style={{ fontSize:'9px', color:'#64748b', marginTop:'1px' }}>{c.sub}</div>}
               </div>
-              <div className="text-on-surface-variant">×{fmt(currentPrazoMult)}</div>
-            </div>
-            <div className="border border-outline-variant rounded-lg p-3">
-              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Complexidade</div>
-              <div className="font-semibold text-on-surface">
-                {complexSelect === 'normal' ? 'Normal' : complexSelect === 'complexo' ? 'Complexo' : 'Muito Complexo'}
+            ))}
+          </div>
+
+          {/* Financial summary row */}
+          <div style={{ display:'flex', gap:'0', border:'2px solid #1d4ed8', borderRadius:'10px', overflow:'hidden', marginBottom:'18px' }}>
+            {[
+              { label:'Horas Líquidas (PERT)', value: `${fmt(totalPERT)}h`, sub:'sem buffer', color:'#0f172a' },
+              { label:`Total c/ Buffer (${bufferPct}%)`, value: `${fmt(totalHours)}h`, sub:`+${fmt(buffer)}h`, color:'#0f172a' },
+              { label:'Preço Mínimo', value: fmtBRL(minPrice), sub:'sem buffer, c/ mult.', color:'#0f172a' },
+              { label:'Valor Total Recomendado', value: fmtBRL(totalPrice), sub:`c/ buffer e multiplicadores`, color:'#1d4ed8', big: true },
+            ].map((c, i) => (
+              <div key={i} style={{ flex: c.big ? 1.4 : 1, padding:'12px 14px', borderLeft: i > 0 ? '1px solid #bfdbfe' : 'none', background: c.big ? '#eff6ff' : '#fff', textAlign: c.big ? 'right' : 'left' }}>
+                <div style={{ fontSize:'8px', fontWeight:700, color: c.big ? '#1d4ed8' : '#64748b', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'4px' }}>{c.label}</div>
+                <div style={{ fontSize: c.big ? '18px' : '14px', fontWeight:800, color: c.color, fontVariantNumeric:'tabular-nums' }}>{c.value}</div>
+                <div style={{ fontSize:'9px', color:'#94a3b8', marginTop:'2px' }}>{c.sub}</div>
               </div>
-              <div className="text-on-surface-variant">×{fmt(currentComplexMult)}</div>
-            </div>
-            <div className="border border-outline-variant rounded-lg p-3">
-              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Fator Total</div>
-              <div className="text-lg font-bold text-primary">×{fmt(multiplierFactor)}</div>
-              <div className="text-on-surface-variant">Buffer: {bufferPct}%</div>
-            </div>
+            ))}
           </div>
 
-          {/* Price summary for PDF */}
-          <div className="flex gap-6 mb-6 p-4 border-2 border-primary rounded-xl">
-            <div className="flex-1">
-              <div className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Horas Líquidas (PERT)</div>
-              <div className="text-xl font-bold text-on-surface">{fmt(totalPERT)}h</div>
-            </div>
-            <div className="flex-1">
-              <div className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Total c/ Buffer ({bufferPct}%)</div>
-              <div className="text-xl font-bold text-on-surface">{fmt(totalHours)}h</div>
-            </div>
-            <div className="flex-1">
-              <div className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Preço Mínimo</div>
-              <div className="text-xl font-bold text-on-surface">{fmtBRL(minPrice)}</div>
-            </div>
-            <div className="flex-1 text-right">
-              <div className="text-xs text-primary uppercase tracking-wider font-bold mb-1">Valor Total Recomendado</div>
-              <div className="text-2xl font-bold text-primary">{fmtBRL(totalPrice)}</div>
-            </div>
-          </div>
-
-          {/* Module pricing table for PDF */}
-          <h2 className="text-base font-bold text-on-surface mb-3">Precificação por Módulo</h2>
-          <table className="w-full text-xs border border-outline-variant rounded-lg overflow-hidden mb-2">
+          {/* Module pricing table */}
+          <div style={{ fontSize:'11px', fontWeight:700, color:'#0f172a', marginBottom:'8px' }}>Precificação por Módulo</div>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'10px', marginBottom:'20px' }}>
             <thead>
-              <tr className="bg-surface-high">
-                <th className="text-left px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">Módulo</th>
-                <th className="text-right px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">Horas Líq.</th>
-                <th className="text-right px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">c/ Buffer</th>
-                <th className="text-right px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">Preço Mín.</th>
-                <th className="text-right px-4 py-2 text-primary font-semibold uppercase tracking-wider">Preço Rec.</th>
+              <tr style={{ background:'#f1f5f9', borderBottom:'1px solid #cbd5e1' }}>
+                <th style={{ textAlign:'left', padding:'6px 10px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.04em' }}>Módulo</th>
+                <th style={{ textAlign:'right', padding:'6px 10px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.04em' }}>Horas Líq.</th>
+                <th style={{ textAlign:'right', padding:'6px 10px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.04em' }}>c/ Buffer</th>
+                <th style={{ textAlign:'right', padding:'6px 10px', color:'#475569', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.04em' }}>Preço Mín.</th>
+                <th style={{ textAlign:'right', padding:'6px 10px', color:'#1d4ed8', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.04em' }}>Preço Rec.</th>
               </tr>
             </thead>
             <tbody>
               {modules.map((mod, i) => (
-                <tr key={mod.id} className="border-t border-outline-variant">
-                  <td className="px-4 py-2 font-semibold text-on-surface">{i + 1}. {mod.title}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-on-surface-variant">{fmt(mod.modHours)}h</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-on-surface-variant">{fmt(mod.modTotal)}h</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-on-surface">{fmtBRL(mod.modMinPrice)}</td>
-                  <td className="px-4 py-2 text-right tabular-nums font-bold text-primary">{fmtBRL(mod.modPrice)}</td>
+                <tr key={mod.id} style={{ borderBottom:'1px solid #e2e8f0', background: i % 2 === 0 ? '#fff' : '#f8fafc' }}>
+                  <td style={{ padding:'6px 10px', fontWeight:600, color:'#0f172a' }}>{i + 1}. {mod.title}</td>
+                  <td style={{ padding:'6px 10px', textAlign:'right', color:'#475569', fontVariantNumeric:'tabular-nums' }}>{fmt(mod.modHours)}h</td>
+                  <td style={{ padding:'6px 10px', textAlign:'right', color:'#475569', fontVariantNumeric:'tabular-nums' }}>{fmt(mod.modTotal)}h</td>
+                  <td style={{ padding:'6px 10px', textAlign:'right', color:'#0f172a', fontVariantNumeric:'tabular-nums' }}>{fmtBRL(mod.modMinPrice)}</td>
+                  <td style={{ padding:'6px 10px', textAlign:'right', fontWeight:700, color:'#1d4ed8', fontVariantNumeric:'tabular-nums' }}>{fmtBRL(mod.modPrice)}</td>
                 </tr>
               ))}
-              <tr className="border-t-2 border-primary">
-                <td className="px-4 py-2 font-bold text-on-surface">TOTAL</td>
-                <td className="px-4 py-2 text-right tabular-nums font-bold text-on-surface">{fmt(totalPERT)}h</td>
-                <td className="px-4 py-2 text-right tabular-nums font-bold text-on-surface">{fmt(totalHours)}h</td>
-                <td className="px-4 py-2 text-right tabular-nums font-bold text-on-surface">{fmtBRL(minPrice)}</td>
-                <td className="px-4 py-2 text-right tabular-nums font-bold text-primary">{fmtBRL(totalPrice)}</td>
+              <tr style={{ borderTop:'2px solid #1d4ed8', background:'#eff6ff' }}>
+                <td style={{ padding:'7px 10px', fontWeight:800, color:'#0f172a' }}>TOTAL</td>
+                <td style={{ padding:'7px 10px', textAlign:'right', fontWeight:700, color:'#0f172a', fontVariantNumeric:'tabular-nums' }}>{fmt(totalPERT)}h</td>
+                <td style={{ padding:'7px 10px', textAlign:'right', fontWeight:700, color:'#0f172a', fontVariantNumeric:'tabular-nums' }}>{fmt(totalHours)}h</td>
+                <td style={{ padding:'7px 10px', textAlign:'right', fontWeight:700, color:'#0f172a', fontVariantNumeric:'tabular-nums' }}>{fmtBRL(minPrice)}</td>
+                <td style={{ padding:'7px 10px', textAlign:'right', fontWeight:800, color:'#1d4ed8', fontVariantNumeric:'tabular-nums' }}>{fmtBRL(totalPrice)}</td>
               </tr>
             </tbody>
           </table>
+
+          <div style={{ fontSize:'8px', color:'#94a3b8', marginBottom:'8px' }}>
+            Fórmula: Horas c/ buffer × R$ {fmt(hourlyRate)}/h × fator {fmt(multiplierFactor)} (prazo ×{fmt(currentPrazoMult)} · complexidade ×{fmt(currentComplexMult)} · porte +{fmt(currentPorteMult * 100)}%)
+          </div>
         </div>
 
         {/* Header */}
@@ -591,7 +582,7 @@ export default function Pricing({
         </section>
 
         {/* ── Summary Cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="no-print grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Net hours */}
           <div className="bg-surface rounded-xl p-5 border border-surface-high/60 shadow-lg flex flex-col gap-2">
             <span className="text-[10px] text-on-surface-variant uppercase tracking-wider font-medium">Horas Líquidas</span>
@@ -640,7 +631,7 @@ export default function Pricing({
         </div>
 
         {/* Price range hero */}
-        <div className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl border border-primary/30 shadow-xl p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="no-print bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl border border-primary/30 shadow-xl p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <div className="text-xs text-primary uppercase tracking-widest font-bold mb-2">Faixa de Preço do Projeto</div>
             <div className="text-4xl sm:text-5xl font-bold text-on-surface tabular-nums">
