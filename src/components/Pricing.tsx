@@ -103,6 +103,16 @@ export default function Pricing({
     };
   });
 
+  // --- FIX: String inputs decoupled from numeric multiplier state ---
+  // This prevents mid-typing values (e.g. "1.") from corrupting the multiplier
+  // and breaking PDF export values.
+  const [prazoInputs, setPrazoInputs] = useState<Record<keyof PrazoMults, string>>(() => ({
+    normal:       String(JSON.parse(localStorage.getItem('pricing_prazo_mults') || 'null')?.normal       ?? 1.00),
+    reduzido:     String(JSON.parse(localStorage.getItem('pricing_prazo_mults') || 'null')?.reduzido     ?? 1.35),
+    muito:        String(JSON.parse(localStorage.getItem('pricing_prazo_mults') || 'null')?.muito        ?? 1.86),
+    extremamente: String(JSON.parse(localStorage.getItem('pricing_prazo_mults') || 'null')?.extremamente ?? 3.00),
+  }));
+
   interface ComplexMults {
     normal: number;
     complexo: number;
@@ -116,6 +126,11 @@ export default function Pricing({
       muito: 1.60
     };
   });
+  const [complexInputs, setComplexInputs] = useState<Record<keyof ComplexMults, string>>(() => ({
+    normal:   String(JSON.parse(localStorage.getItem('pricing_complex_mults') || 'null')?.normal   ?? 1.00),
+    complexo: String(JSON.parse(localStorage.getItem('pricing_complex_mults') || 'null')?.complexo ?? 1.30),
+    muito:    String(JSON.parse(localStorage.getItem('pricing_complex_mults') || 'null')?.muito    ?? 1.60),
+  }));
 
   interface PorteMults {
     pf: number;
@@ -134,6 +149,13 @@ export default function Pricing({
       grande: 0.20
     };
   });
+  const [porteInputs, setPorteInputs] = useState<Record<keyof PorteMults, string>>(() => ({
+    pf:      String(JSON.parse(localStorage.getItem('pricing_porte_mults') || 'null')?.pf      ?? 0.00),
+    me:      String(JSON.parse(localStorage.getItem('pricing_porte_mults') || 'null')?.me      ?? 0.00),
+    pequeno: String(JSON.parse(localStorage.getItem('pricing_porte_mults') || 'null')?.pequeno ?? 0.00),
+    medio:   String(JSON.parse(localStorage.getItem('pricing_porte_mults') || 'null')?.medio   ?? 0.10),
+    grande:  String(JSON.parse(localStorage.getItem('pricing_porte_mults') || 'null')?.grande  ?? 0.20),
+  }));
 
   // Action helpers to update states and localStorage
   const updatePrazoSelect = (val: string) => {
@@ -149,21 +171,29 @@ export default function Pricing({
     localStorage.setItem('pricing_porte_select', val);
   };
 
-  const updatePrazoMult = (key: keyof PrazoMults, val: number) => {
+  // Commit helpers: only update the numeric state on blur/enter
+  const applyPrazoMult = (key: keyof PrazoMults, raw: string) => {
+    const n = parseFloat(raw.replace(',', '.'));
+    const val = isNaN(n) ? prazoMultipliers[key] : Math.round(n * 1000) / 1000;
     const updated = { ...prazoMultipliers, [key]: val };
     setPrazoMultipliers(updated);
+    setPrazoInputs(prev => ({ ...prev, [key]: String(val) }));
     localStorage.setItem('pricing_prazo_mults', JSON.stringify(updated));
   };
-
-  const updateComplexMult = (key: keyof ComplexMults, val: number) => {
+  const applyComplexMult = (key: keyof ComplexMults, raw: string) => {
+    const n = parseFloat(raw.replace(',', '.'));
+    const val = isNaN(n) ? complexMultipliers[key] : Math.round(n * 1000) / 1000;
     const updated = { ...complexMultipliers, [key]: val };
     setComplexMultipliers(updated);
+    setComplexInputs(prev => ({ ...prev, [key]: String(val) }));
     localStorage.setItem('pricing_complex_mults', JSON.stringify(updated));
   };
-
-  const updatePorteMult = (key: keyof PorteMults, val: number) => {
+  const applyPorteMult = (key: keyof PorteMults, raw: string) => {
+    const n = parseFloat(raw.replace(',', '.'));
+    const val = isNaN(n) ? porteMultipliers[key] : Math.round(n * 1000) / 1000;
     const updated = { ...porteMultipliers, [key]: val };
     setPorteMultipliers(updated);
+    setPorteInputs(prev => ({ ...prev, [key]: String(val) }));
     localStorage.setItem('pricing_porte_mults', JSON.stringify(updated));
   };
 
@@ -182,7 +212,7 @@ export default function Pricing({
   );
   const buffer     = Math.round(totalPERT * (bufferPct / 100) * 10) / 10;
   const totalHours  = Math.round((totalPERT + buffer) * 10) / 10;
-  
+
   const basePrice   = Math.round(totalHours * hourlyRate * 100) / 100;
   const totalPrice  = Math.round(basePrice * multiplierFactor * 100) / 100;
   const minPrice    = Math.round(totalPERT * hourlyRate * multiplierFactor * 100) / 100;
@@ -200,8 +230,9 @@ export default function Pricing({
     const modBuf       = Math.round(modHours * (bufferPct / 100) * 10) / 10;
     const modTotal     = Math.round((modHours + modBuf) * 10) / 10;
     const modPrice     = Math.round(modTotal * hourlyRate * multiplierFactor * 100) / 100;
+    const modMinPrice  = Math.round(modHours * hourlyRate * multiplierFactor * 100) / 100;
     const modSP        = items.reduce((s, i) => s + i.sp, 0);
-    return { ...mod, items, modHours, modBuf, modTotal, modPrice, modSP };
+    return { ...mod, items, modHours, modBuf, modTotal, modPrice, modMinPrice, modSP };
   });
 
   function applyRate() {
@@ -244,6 +275,98 @@ export default function Pricing({
 
       {/* ── Content ─────────────────────────────────────────────────── */}
       <main className="flex-1 px-4 sm:px-8 pt-24 max-w-5xl mx-auto w-full flex flex-col gap-8">
+
+        {/* ── PDF-only Header ─────────────────────────────────────────── */}
+        <div className="hidden print:block mb-2">
+          <div className="flex items-center justify-between border-b-2 border-primary pb-3 mb-5">
+            <div>
+              <h1 className="text-2xl font-bold text-on-surface">{projectName}</h1>
+              <p className="text-sm text-on-surface-variant mt-0.5">Proposta de Precificação — EAP Architect</p>
+            </div>
+            <div className="text-right text-xs text-on-surface-variant">
+              <div>Gerado em {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+            </div>
+          </div>
+
+          {/* Multiplier summary for PDF */}
+          <div className="grid grid-cols-4 gap-4 mb-5 text-xs">
+            <div className="border border-outline-variant rounded-lg p-3">
+              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Valor / Hora</div>
+              <div className="text-lg font-bold text-on-surface">{fmtBRL(hourlyRate)}</div>
+            </div>
+            <div className="border border-outline-variant rounded-lg p-3">
+              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Prazo</div>
+              <div className="font-semibold text-on-surface">
+                {prazoSelect === 'normal' ? 'Normal' : prazoSelect === 'reduzido' ? 'Reduzido' : prazoSelect === 'muito' ? 'Muito Reduzido' : 'Extr. Reduzido'}
+              </div>
+              <div className="text-on-surface-variant">×{fmt(currentPrazoMult)}</div>
+            </div>
+            <div className="border border-outline-variant rounded-lg p-3">
+              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Complexidade</div>
+              <div className="font-semibold text-on-surface">
+                {complexSelect === 'normal' ? 'Normal' : complexSelect === 'complexo' ? 'Complexo' : 'Muito Complexo'}
+              </div>
+              <div className="text-on-surface-variant">×{fmt(currentComplexMult)}</div>
+            </div>
+            <div className="border border-outline-variant rounded-lg p-3">
+              <div className="font-bold text-on-surface-variant uppercase tracking-wider mb-1">Fator Total</div>
+              <div className="text-lg font-bold text-primary">×{fmt(multiplierFactor)}</div>
+              <div className="text-on-surface-variant">Buffer: {bufferPct}%</div>
+            </div>
+          </div>
+
+          {/* Price summary for PDF */}
+          <div className="flex gap-6 mb-6 p-4 border-2 border-primary rounded-xl">
+            <div className="flex-1">
+              <div className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Horas Líquidas (PERT)</div>
+              <div className="text-xl font-bold text-on-surface">{fmt(totalPERT)}h</div>
+            </div>
+            <div className="flex-1">
+              <div className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Total c/ Buffer ({bufferPct}%)</div>
+              <div className="text-xl font-bold text-on-surface">{fmt(totalHours)}h</div>
+            </div>
+            <div className="flex-1">
+              <div className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Preço Mínimo</div>
+              <div className="text-xl font-bold text-on-surface">{fmtBRL(minPrice)}</div>
+            </div>
+            <div className="flex-1 text-right">
+              <div className="text-xs text-primary uppercase tracking-wider font-bold mb-1">Valor Total Recomendado</div>
+              <div className="text-2xl font-bold text-primary">{fmtBRL(totalPrice)}</div>
+            </div>
+          </div>
+
+          {/* Module pricing table for PDF */}
+          <h2 className="text-base font-bold text-on-surface mb-3">Precificação por Módulo</h2>
+          <table className="w-full text-xs border border-outline-variant rounded-lg overflow-hidden mb-2">
+            <thead>
+              <tr className="bg-surface-high">
+                <th className="text-left px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">Módulo</th>
+                <th className="text-right px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">Horas Líq.</th>
+                <th className="text-right px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">c/ Buffer</th>
+                <th className="text-right px-4 py-2 text-on-surface-variant font-semibold uppercase tracking-wider">Preço Mín.</th>
+                <th className="text-right px-4 py-2 text-primary font-semibold uppercase tracking-wider">Preço Rec.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {modules.map((mod, i) => (
+                <tr key={mod.id} className="border-t border-outline-variant">
+                  <td className="px-4 py-2 font-semibold text-on-surface">{i + 1}. {mod.title}</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-on-surface-variant">{fmt(mod.modHours)}h</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-on-surface-variant">{fmt(mod.modTotal)}h</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-on-surface">{fmtBRL(mod.modMinPrice)}</td>
+                  <td className="px-4 py-2 text-right tabular-nums font-bold text-primary">{fmtBRL(mod.modPrice)}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-primary">
+                <td className="px-4 py-2 font-bold text-on-surface">TOTAL</td>
+                <td className="px-4 py-2 text-right tabular-nums font-bold text-on-surface">{fmt(totalPERT)}h</td>
+                <td className="px-4 py-2 text-right tabular-nums font-bold text-on-surface">{fmt(totalHours)}h</td>
+                <td className="px-4 py-2 text-right tabular-nums font-bold text-on-surface">{fmtBRL(minPrice)}</td>
+                <td className="px-4 py-2 text-right tabular-nums font-bold text-primary">{fmtBRL(totalPrice)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         {/* Header */}
         <header className="flex flex-col gap-2 print:hidden">
@@ -353,46 +476,22 @@ export default function Pricing({
               <div className="space-y-2 mt-1.5 p-3 bg-surface-high/15 rounded-lg text-xs border border-outline-variant/30">
                 <span className="font-semibold text-on-surface-variant block mb-1">Ajustar Fatores (Prazo):</span>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Normal (100%)</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={prazoMultipliers.normal}
-                      onChange={(e) => updatePrazoMult('normal', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Reduzido (85%)</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={prazoMultipliers.reduzido}
-                      onChange={(e) => updatePrazoMult('reduzido', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Muito Red. (70%)</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={prazoMultipliers.muito}
-                      onChange={(e) => updatePrazoMult('muito', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Extr. Red. (50%)</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={prazoMultipliers.extremamente}
-                      onChange={(e) => updatePrazoMult('extremamente', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
+                  {(['normal','reduzido','muito','extremamente'] as const).map((k) => (
+                    <div key={k} className="flex flex-col gap-1">
+                      <span className="text-[9px] text-outline uppercase font-medium">
+                        {k === 'normal' ? 'Normal (100%)' : k === 'reduzido' ? 'Reduzido (85%)' : k === 'muito' ? 'Muito Red. (70%)' : 'Extr. Red. (50%)'}
+                      </span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={prazoInputs[k]}
+                        onChange={(e) => setPrazoInputs(prev => ({ ...prev, [k]: e.target.value }))}
+                        onBlur={() => applyPrazoMult(k, prazoInputs[k])}
+                        onKeyDown={(e) => e.key === 'Enter' && applyPrazoMult(k, prazoInputs[k])}
+                        className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -416,36 +515,22 @@ export default function Pricing({
               <div className="space-y-2 mt-1.5 p-3 bg-surface-high/15 rounded-lg text-xs border border-outline-variant/30">
                 <span className="font-semibold text-on-surface-variant block mb-1">Ajustar Fatores (Complexidade):</span>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Normal</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={complexMultipliers.normal}
-                      onChange={(e) => updateComplexMult('normal', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Complexo</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={complexMultipliers.complexo}
-                      onChange={(e) => updateComplexMult('complexo', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Muito C.</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={complexMultipliers.muito}
-                      onChange={(e) => updateComplexMult('muito', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
+                  {(['normal','complexo','muito'] as const).map((k) => (
+                    <div key={k} className="flex flex-col gap-1">
+                      <span className="text-[9px] text-outline uppercase font-medium">
+                        {k === 'normal' ? 'Normal' : k === 'complexo' ? 'Complexo' : 'Muito C.'}
+                      </span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={complexInputs[k]}
+                        onChange={(e) => setComplexInputs(prev => ({ ...prev, [k]: e.target.value }))}
+                        onBlur={() => applyComplexMult(k, complexInputs[k])}
+                        onKeyDown={(e) => e.key === 'Enter' && applyComplexMult(k, complexInputs[k])}
+                        className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -471,53 +556,31 @@ export default function Pricing({
               <div className="space-y-2 mt-1.5 p-3 bg-surface-high/15 rounded-lg text-xs border border-outline-variant/30">
                 <span className="font-semibold text-on-surface-variant block mb-1">Ajustar Fatores (Porte):</span>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">PF</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={porteMultipliers.pf}
-                      onChange={(e) => updatePorteMult('pf', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Micro</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={porteMultipliers.me}
-                      onChange={(e) => updatePorteMult('me', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Pequeno</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={porteMultipliers.pequeno}
-                      onChange={(e) => updatePorteMult('pequeno', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] text-outline uppercase font-medium">Médio (+10%)</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={porteMultipliers.medio}
-                      onChange={(e) => updatePorteMult('medio', parseFloat(e.target.value) || 0)}
-                      className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
-                    />
-                  </div>
+                  {(['pf','me','pequeno','medio'] as const).map((k) => (
+                    <div key={k} className="flex flex-col gap-1">
+                      <span className="text-[9px] text-outline uppercase font-medium">
+                        {k === 'pf' ? 'PF' : k === 'me' ? 'Micro' : k === 'pequeno' ? 'Pequeno' : 'Médio (+10%)'}
+                      </span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={porteInputs[k]}
+                        onChange={(e) => setPorteInputs(prev => ({ ...prev, [k]: e.target.value }))}
+                        onBlur={() => applyPorteMult(k, porteInputs[k])}
+                        onKeyDown={(e) => e.key === 'Enter' && applyPorteMult(k, porteInputs[k])}
+                        className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                  ))}
                   <div className="flex flex-col gap-1 col-span-2">
                     <span className="text-[9px] text-outline uppercase font-medium">Grande (+20%)</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      value={porteMultipliers.grande}
-                      onChange={(e) => updatePorteMult('grande', parseFloat(e.target.value) || 0)}
+                      type="text"
+                      inputMode="decimal"
+                      value={porteInputs.grande}
+                      onChange={(e) => setPorteInputs(prev => ({ ...prev, grande: e.target.value }))}
+                      onBlur={() => applyPorteMult('grande', porteInputs.grande)}
+                      onKeyDown={(e) => e.key === 'Enter' && applyPorteMult('grande', porteInputs.grande)}
                       className="p-1 px-2 bg-bg border border-outline-variant/60 rounded text-xs text-on-surface font-semibold focus:outline-none focus:border-primary"
                     />
                   </div>
@@ -639,7 +702,10 @@ export default function Pricing({
                     <span>•</span>
                     <span className="tabular-nums">{fmt(mod.modHours)}h líquidas</span>
                   </div>
-                  <span className="font-bold text-primary text-base tabular-nums">{fmtBRL(mod.modPrice)}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="font-bold text-primary text-base tabular-nums">{fmtBRL(mod.modPrice)}</span>
+                    <span className="text-[10px] text-on-surface-variant tabular-nums">mín. {fmtBRL(mod.modMinPrice)}</span>
+                  </div>
                 </div>
               </div>
 
